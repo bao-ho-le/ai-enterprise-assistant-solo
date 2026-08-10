@@ -1,8 +1,8 @@
 package com.enterprise.aiassistant.backend.processing.orchestration.mapper;
 
-import com.enterprise.aiassistant.backend.ai.embedding.dto.EmbeddingResult;
-import com.enterprise.aiassistant.backend.ai.vectorstore.dto.VectorPayload;
-import com.enterprise.aiassistant.backend.ai.vectorstore.dto.VectorPoint;
+import com.enterprise.aiassistant.backend.ai.infrastructure.embedding.dto.EmbeddingResult;
+import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.dto.VectorPayload;
+import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.dto.VectorPoint;
 import com.enterprise.aiassistant.backend.document.entity.DocumentChunk;
 import com.enterprise.aiassistant.backend.document.entity.DocumentText;
 import com.enterprise.aiassistant.backend.document.entity.DocumentVersion;

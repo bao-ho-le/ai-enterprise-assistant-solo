@@ -1,10 +1,10 @@
 package com.enterprise.aiassistant.backend.processing.orchestration.service;
 
-import com.enterprise.aiassistant.backend.ai.embedding.dto.EmbeddingResult;
-import com.enterprise.aiassistant.backend.ai.embedding.service.EmbeddingService;
-import com.enterprise.aiassistant.backend.ai.usage.enums.AIUsageStatus;
-import com.enterprise.aiassistant.backend.ai.vectorstore.dto.VectorPoint;
-import com.enterprise.aiassistant.backend.ai.vectorstore.service.VectorStoreService;
+import com.enterprise.aiassistant.backend.ai.infrastructure.embedding.dto.EmbeddingResult;
+import com.enterprise.aiassistant.backend.ai.infrastructure.embedding.service.EmbeddingService;
+import com.enterprise.aiassistant.backend.ai.analytics.usage.enums.AIUsageStatus;
+import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.dto.VectorPoint;
+import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.service.VectorStoreService;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.BusinessException;
 import com.enterprise.aiassistant.backend.document.entity.DocumentChunk;

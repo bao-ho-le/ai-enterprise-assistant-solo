@@ -1,7 +1,7 @@
 package com.enterprise.aiassistant.backend.ai.chat.helper;
 
 
-import com.enterprise.aiassistant.backend.ai.generation.dto.SummaryGenerationInput;
+import com.enterprise.aiassistant.backend.ai.knowledge.generation.dto.SummaryGenerationInput;
 
 import org.springframework.stereotype.Component;
 
