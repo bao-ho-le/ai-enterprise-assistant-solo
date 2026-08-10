@@ -25,7 +25,7 @@ export function deleteFolder(folderId) {
   return apiClient.del(`/folders/${folderId}`);
 }
 
-// GET /folders/deleted -> Page<FolderResponse>, most recently deleted first.
+// GET /folders/deleted?keyword= -> Page<FolderResponse>, most recently deleted first.
 export function getDeletedFolders(params, signal) {
   return apiClient.get("/folders/deleted", { params, signal });
 }

@@ -42,7 +42,8 @@ public interface FolderService {
     void hardDeleteFolder(Long folderId);
 
     // Thùng rác: liệt kê các folder đã bị xoá mềm, mới xoá gần nhất lên trước.
-    Page<FolderResponse> getDeletedFolders(Pageable pageable);
+    // keyword null/blank -> không lọc theo tên.
+    Page<FolderResponse> getDeletedFolders(String keyword, Pageable pageable);
 
     // Tìm kiếm folder theo tên (chỉ trong các folder đang hoạt động).
     Page<FolderResponse> searchFolders(String keyword, Pageable pageable);

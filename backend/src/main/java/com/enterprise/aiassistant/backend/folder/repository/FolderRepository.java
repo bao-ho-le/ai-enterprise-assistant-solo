@@ -27,6 +27,10 @@ public interface FolderRepository extends JpaRepository<Folder, Long>,
     // Thùng rác: liệt kê các folder đã xoá mềm, mới xoá gần nhất lên trước.
     Page<Folder> findByStatusOrderByDeletedAtDesc(FolderStatus status, Pageable pageable);
 
+    // Thùng rác có lọc theo tên (không phân biệt hoa/thường).
+    Page<Folder> findByStatusAndNameContainingIgnoreCaseOrderByDeletedAtDesc(
+            FolderStatus status, String keyword, Pageable pageable);
+
     // Tìm kiếm folder theo tên (không phân biệt hoa/thường), chỉ trong các folder đang ACTIVE.
     Page<Folder> findByNameContainingIgnoreCaseAndStatusOrderByNameAsc(
             String keyword, FolderStatus status, Pageable pageable);

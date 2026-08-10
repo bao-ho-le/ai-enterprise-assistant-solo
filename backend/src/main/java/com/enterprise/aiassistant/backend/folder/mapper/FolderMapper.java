@@ -31,6 +31,7 @@ public class FolderMapper {
                 .status(folder.getStatus())
                 .createdAt(folder.getCreatedAt())
                 .updatedAt(folder.getUpdatedAt())
+                .deletedAt(folder.getDeletedAt())
                 .build();
     }
 

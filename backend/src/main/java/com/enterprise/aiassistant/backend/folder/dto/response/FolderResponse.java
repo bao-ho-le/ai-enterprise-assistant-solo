@@ -25,4 +25,7 @@ public class FolderResponse {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    // Thời điểm xoá mềm (null nếu folder đang ACTIVE) — dùng cho màn Trash.
+    private LocalDateTime deletedAt;
 }

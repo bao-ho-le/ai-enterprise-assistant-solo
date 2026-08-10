@@ -22,7 +22,7 @@ public class FolderRepositoryCustomImpl implements FolderRepositoryCustom {
 
         // Mọi document đều thuộc 1 folder (root là mặc định), nên không còn nhánh "folder IS NULL".
         String jpql = "SELECT new com.enterprise.aiassistant.backend.document.dto.response.DocumentListResponse(" +
-                "d.id, d.title, v.createdAt, f.extension, d.documentType, f.fileSize, v.status, d.status, d.folder.id) " +
+                "d.id, d.title, v.createdAt, f.extension, d.documentType, f.fileSize, v.status, d.status, d.folder.id, d.deletedAt) " +
                 "FROM Document d " +
                 "JOIN d.currentVersion v " +
                 "JOIN v.file f " +

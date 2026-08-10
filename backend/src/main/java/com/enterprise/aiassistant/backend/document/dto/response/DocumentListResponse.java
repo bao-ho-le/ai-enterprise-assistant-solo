@@ -36,4 +36,7 @@ public class DocumentListResponse {
 
     // Folder chứa document, để UI điều hướng thẳng tới vị trí của nó từ kết quả tìm kiếm.
     private Long folderId;
+
+    // Thời điểm xoá mềm (null nếu document đang ACTIVE) — dùng cho màn Trash.
+    private LocalDateTime deletedAt;
 }
