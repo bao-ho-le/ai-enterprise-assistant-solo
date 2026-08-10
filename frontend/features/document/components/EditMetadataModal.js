@@ -62,7 +62,7 @@ export default function EditMetadataModal({ open, onClose, documentId, onSaved }
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Edit Metadata">
+    <Modal open={open} onClose={onClose} title="Edit Metadata" preventClose={submitting}>
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-10 text-text-muted">
           <Loader2 className="h-5 w-5 animate-spin" />

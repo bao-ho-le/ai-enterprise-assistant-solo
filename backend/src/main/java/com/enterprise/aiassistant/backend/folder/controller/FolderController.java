@@ -65,9 +65,10 @@ public class FolderController {
     // Literal path, khai báo tách biệt với /{folderId} — danh sách thùng rác (chỉ folder đã xoá mềm).
     @GetMapping("/deleted")
     public ResponseEntity<Page<FolderResponse>> getDeletedFolders(
+            @RequestParam(required = false) String keyword,
             @PageableDefault(page = 0, size = 20) Pageable pageable
     ) {
-        return ResponseEntity.ok(folderService.getDeletedFolders(pageable));
+        return ResponseEntity.ok(folderService.getDeletedFolders(keyword, pageable));
     }
 
     // Tìm kiếm folder theo tên (trong các folder đang hoạt động).

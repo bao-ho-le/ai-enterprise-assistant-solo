@@ -2,15 +2,25 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { FileText, Folder, Loader2, RotateCcw } from "lucide-react";
+import { FileText, Folder, Loader2, RotateCcw, Search } from "lucide-react";
 import LoadMore from "@/components/ui/LoadMore";
 import Toast from "@/components/ui/Toast";
 import { listDocuments, restoreDocument } from "@/services/documentService";
 import { getDeletedFolders, restoreFolder } from "@/services/folderService";
-import { documentTypeLabel } from "@/constants/document";
-import { formatDateTime } from "@/utils/format";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const PAGE_SIZE = 20;
+
+// "10/08/2026 · 16:17" — dd/mm/yyyy, Trash-specific (File Storage's formatDateTime uses "Aug 10, 2026").
+function formatDeletedAt(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "—";
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return `${day}/${month}/${d.getFullYear()} · ${time}`;
+}
 
 // Restore only — permanent delete is deliberately not offered here.
 //
@@ -40,16 +50,31 @@ export default function TrashView() {
   const [restoringKey, setRestoringKey] = useState(null);
   const [toast, setToast] = useState(null);
 
+  const [keyword, setKeyword] = useState("");
+  const debouncedKeyword = useDebounce(keyword, 400);
+  const trimmedKeyword = debouncedKeyword.trim();
+  const isFiltered = trimmedKeyword.length > 0;
+
   const notify = useCallback((type, text) => setToast({ type, text }), []);
 
   const fetchFolders = useCallback(
-    (page, signal) => getDeletedFolders({ page, size: PAGE_SIZE }, signal),
-    []
+    (page, signal) =>
+      getDeletedFolders({ page, size: PAGE_SIZE, keyword: trimmedKeyword || undefined }, signal),
+    [trimmedKeyword]
   );
   const fetchDocuments = useCallback(
     (page, signal) =>
-      listDocuments({ documentStatus: "DELETED", sort: "newest", page, size: PAGE_SIZE }, signal),
-    []
+      listDocuments(
+        {
+          documentStatus: "DELETED",
+          sort: "newest",
+          page,
+          size: PAGE_SIZE,
+          keyword: trimmedKeyword || undefined,
+        },
+        signal
+      ),
+    [trimmedKeyword]
   );
 
   useEffect(() => {
@@ -184,6 +209,18 @@ export default function TrashView() {
         </p>
       </div>
 
+      <div className="mb-5 flex h-9 items-center rounded-lg border border-border-subtle bg-bg-card px-3 sm:w-[calc((100%-0.75rem)/2)] lg:w-[calc((100%-1.5rem)/3)]">
+        <Search className="h-4 w-4 shrink-0 text-text-muted" />
+        <input
+          type="search"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          placeholder="Search folders and documents..."
+          aria-label="Search trash"
+          className="ml-2 flex-1 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
+        />
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-10 text-text-muted">
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -192,7 +229,9 @@ export default function TrashView() {
       ) : error ? (
         <p className="text-sm text-error">{error}</p>
       ) : isEmpty ? (
-        <p className="text-sm text-text-muted">The trash is empty.</p>
+        <p className="text-sm text-text-muted">
+          {isFiltered ? "No matching items in trash." : "The trash is empty."}
+        </p>
       ) : (
         <div className="space-y-6">
           {folders.length > 0 && (
@@ -210,9 +249,7 @@ export default function TrashView() {
                       <p className="truncate text-sm font-medium text-text-primary" title={folder.name}>
                         {folder.name}
                       </p>
-                      <p className="text-xs text-text-muted">
-                        FOLDER · Deleted {formatDateTime(folder.deletedAt)}
-                      </p>
+                      <p className="text-xs text-text-muted">Deleted at: {formatDeletedAt(folder.deletedAt)}</p>
                     </div>
                     {restoreButton(`folder-${folder.id}`, () => onRestoreFolder(folder))}
                   </li>
@@ -253,9 +290,7 @@ export default function TrashView() {
                       <p className="truncate text-sm font-medium text-text-primary" title={doc.title}>
                         {doc.title}
                       </p>
-                      <p className="text-xs uppercase text-text-muted">
-                        {documentTypeLabel(doc.documentType)} · {formatDateTime(doc.uploadTime)}
-                      </p>
+                      <p className="text-xs text-text-muted">Deleted at: {formatDeletedAt(doc.deletedAt)}</p>
                     </div>
                     {restoreButton(`document-${doc.id}`, () => onRestoreDocument(doc))}
                   </li>

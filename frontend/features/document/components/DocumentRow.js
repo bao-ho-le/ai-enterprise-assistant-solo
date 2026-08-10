@@ -2,23 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  FileText,
-  FileSpreadsheet,
-  File as FileIcon,
-  ScanSearch,
-  Download,
-  Upload,
-  Pencil,
-  Trash2,
-  RotateCcw,
-  FolderOpen,
-} from "lucide-react";
-import RowActionsMenu from "./RowActionsMenu";
-import { documentTypeLabel, versionStatusBadge } from "@/constants/document";
+import { ScanSearch, Download, FolderOpen, MoreHorizontal } from "lucide-react";
+import { documentTypeLabel, versionStatusBadge, extensionIcon } from "@/constants/document";
 import { formatBytes, formatDateTime } from "@/utils/format";
 import { hrefForFolderId } from "@/utils/folderPath";
 import { gridTemplateColumns } from "./documentTableGrid";
+import { useClickVsDoubleClick } from "@/hooks/useClickVsDoubleClick";
 
 // Match dot colour per score band. The two middle bands are a linear RGB gradient
 // between the endpoints --success (#22c55e) and --warning (#eab308): t=1/3 ->
@@ -33,100 +22,16 @@ function matchDotColor(percent) {
   return "var(--text-muted)";
 }
 
-// File Name icon + color, picked by extension (PDF red, Word blue, Excel green,
-// plain text neutral, anything else falls back to a generic file icon).
-const EXTENSION_ICON = {
-  pdf: { Icon: FileText, bg: "bg-red-500/10", color: "text-red-400" },
-  doc: { Icon: FileText, bg: "bg-blue-500/10", color: "text-blue-400" },
-  docx: { Icon: FileText, bg: "bg-blue-500/10", color: "text-blue-400" },
-  xls: { Icon: FileSpreadsheet, bg: "bg-green-500/10", color: "text-green-400" },
-  xlsx: { Icon: FileSpreadsheet, bg: "bg-green-500/10", color: "text-green-400" },
-  txt: { Icon: FileText, bg: "bg-bg-elevated", color: "text-text-secondary" },
-};
-
-function extensionIcon(extension) {
-  return (
-    EXTENSION_ICON[(extension || "").toLowerCase()] || {
-      Icon: FileIcon,
-      bg: "bg-bg-elevated",
-      color: "text-text-secondary",
-    }
-  );
-}
-
-function DocumentActionsMenu({ doc, onUploadVersion, onEdit, onDelete, onRestore }) {
-  const isDeleted = doc.documentStatus === "DELETED";
-
-  return (
-    <RowActionsMenu itemCount={isDeleted ? 2 : 4}>
-      {(close) => {
-        const run = (fn) => () => {
-          close();
-          fn(doc);
-        };
-        return (
-          <>
-            <Link
-              href={`/file-storage/${doc.id}`}
-              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-primary hover:bg-bg-elevated transition-colors"
-            >
-              <FileText className="h-4 w-4 text-text-muted" />
-              Document Details
-            </Link>
-            {isDeleted ? (
-              <button
-                type="button"
-                onClick={run(onRestore)}
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-primary hover:bg-bg-elevated transition-colors"
-              >
-                <RotateCcw className="h-4 w-4 text-text-muted" />
-                Restore Document
-              </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={run(onUploadVersion)}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-primary hover:bg-bg-elevated transition-colors"
-                >
-                  <Upload className="h-4 w-4 text-text-muted" />
-                  Upload New Version
-                </button>
-                <button
-                  type="button"
-                  onClick={run(onEdit)}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-primary hover:bg-bg-elevated transition-colors"
-                >
-                  <Pencil className="h-4 w-4 text-text-muted" />
-                  Edit Metadata
-                </button>
-                <button
-                  type="button"
-                  onClick={run(onDelete)}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-error hover:bg-error/10 transition-colors"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete Document
-                </button>
-              </>
-            )}
-          </>
-        );
-      }}
-    </RowActionsMenu>
-  );
-}
-
 export default function DocumentRow({
   doc,
   showSemanticColumn,
   selected,
   onToggle,
+  onRowSelect,
+  buildDragPayload,
   onDownload,
-  onUploadVersion,
-  onEdit,
-  onDelete,
-  onRestore,
+  onMenuTrigger,
+  isContextMenuTarget,
   onViewEvidence,
 }) {
   const processing = versionStatusBadge(doc.versionStatus);
@@ -134,10 +39,19 @@ export default function DocumentRow({
   const similarityPercent = hasMatch ? Math.round(doc.semanticScore * 100) : 0;
   const { Icon: ExtIcon, bg: iconBg, color: iconColor } = extensionIcon(doc.extension);
   const router = useRouter();
+  // Delays the select-on-click so a double-click (open the document) doesn't
+  // flash a selection highlight right before navigating away — see
+  // useClickVsDoubleClick.
+  const { onClick, onDoubleClick } = useClickVsDoubleClick(
+    (mods) => onRowSelect?.("document", doc.id, mods),
+    () => router.push(`/file-storage/${doc.id}`)
+  );
 
   return (
-    // Clicking anywhere on the row opens the document detail page; the checkbox and
-    // Actions cells stop the click so selecting/acting doesn't navigate away.
+    // Clicking anywhere on the row selects it (Finder/Explorer semantics — see
+    // FileStorageView's selectRow); double-click opens the document detail page.
+    // The checkbox and Actions cells stop the click so selecting/acting doesn't
+    // also re-select the row underneath.
     //
     // grid, not <tr>: the header row lives outside the scroll container (see
     // DocumentTable.js), so there's no shared <table> left to align columns —
@@ -145,11 +59,36 @@ export default function DocumentRow({
     // Every cell carries its own border-b (that part is unchanged from the old
     // border-separate table) plus flex/items-center to replace the vertical
     // centering a <td> gave for free.
+    //
+    // Right-click and the "..." button both open the table's ONE context menu
+    // (see DocumentTable's contextMenu state) via onMenuTrigger — no menu lives
+    // inside the row anymore, so there can never be two menus at once. Only
+    // wired when that menu actually exists (search-result rows show different
+    // actions with no row menu).
+    //
+    // draggable: drags the whole current selection if this row is part of it,
+    // otherwise just this row (see buildDragPayload in FileStorageView).
     <div
       role="row"
-      className="grid bg-bg-primary cursor-pointer transition-colors hover:bg-bg-elevated/50"
+      draggable={!showSemanticColumn}
+      className={`grid cursor-pointer transition-colors hover:bg-bg-elevated/50 ${
+        isContextMenuTarget ? "bg-bg-elevated/70" : "bg-bg-primary"
+      }`}
       style={{ gridTemplateColumns: gridTemplateColumns(showSemanticColumn) }}
-      onClick={() => router.push(`/file-storage/${doc.id}`)}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("application/json", JSON.stringify(buildDragPayload?.("document", doc.id) || []));
+      }}
+      onContextMenu={
+        showSemanticColumn
+          ? undefined
+          : (e) => {
+              e.preventDefault();
+              onMenuTrigger?.("document", doc, { kind: "point", x: e.clientX, y: e.clientY });
+            }
+      }
     >
       <div role="cell" className="min-w-0 flex items-center gap-3 border-b border-border-default px-4 py-1">
         <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${iconBg}`}>
@@ -159,19 +98,21 @@ export default function DocumentRow({
             so the filename only truncates when it genuinely exceeds the
             available width. */}
         <div className="min-w-0">
-          <Link
-            href={`/file-storage/${doc.id}`}
-            className="block truncate text-xs font-medium text-text-primary hover:text-accent transition-colors"
+          {/* Plain text, not a Link: a Link here would navigate on the first
+              click and bypass the row's double-click-to-open behavior. */}
+          <span
+            className="block truncate text-xs font-medium text-text-primary"
             title={doc.title}
           >
             {doc.title}
-          </Link>
+          </span>
         </div>
       </div>
       <div
         role="cell"
         className="flex items-center border-b border-border-default px-4 py-1"
         onClick={(e) => e.stopPropagation()}
+        onDoubleClick={(e) => e.stopPropagation()}
       >
         <input
           type="checkbox"
@@ -245,6 +186,7 @@ export default function DocumentRow({
         role="cell"
         className="flex items-center justify-end gap-1 border-b border-border-default px-4 py-1"
         onClick={(e) => e.stopPropagation()}
+        onDoubleClick={(e) => e.stopPropagation()}
       >
         {showSemanticColumn ? (
           <>
@@ -277,13 +219,14 @@ export default function DocumentRow({
             >
               <Download className="h-4 w-4" />
             </button>
-            <DocumentActionsMenu
-              doc={doc}
-              onUploadVersion={onUploadVersion}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onRestore={onRestore}
-            />
+            <button
+              type="button"
+              className="btn-ghost p-1.5"
+              aria-label="More actions"
+              onClick={(e) => onMenuTrigger?.("document", doc, { kind: "button", node: e.currentTarget })}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
           </>
         )}
       </div>

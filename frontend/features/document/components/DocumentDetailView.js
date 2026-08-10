@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Info,
@@ -30,6 +30,7 @@ function Field({ label, children }) {
 }
 
 export default function DocumentDetailView({ documentId }) {
+  const router = useRouter();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -73,10 +74,13 @@ export default function DocumentDetailView({ documentId }) {
           View and manage document information, versions, and metadata
         </p>
       </div>
-      <Link href="/file-storage" className="btn-secondary py-2 px-4 text-sm">
+      {/* router.back(), not a fixed href: the row that opened this page pushed a
+          real history entry for its folder (see FileStorageView's openFolder),
+          so browser Back lands back in that folder instead of File Storage root. */}
+      <button type="button" onClick={() => router.back()} className="btn-secondary py-2 px-4 text-sm">
         <ArrowLeft className="h-4 w-4" />
         Back
-      </Link>
+      </button>
     </div>
   );
 

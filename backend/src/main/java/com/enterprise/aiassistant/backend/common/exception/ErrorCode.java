@@ -609,6 +609,11 @@ public enum ErrorCode {
     LLM_INVALID_PROMPT(
             BAD_REQUEST,
             "Prompt is required"
+    ),
+
+    LLM_INPUT_TOO_LARGE(
+            BAD_REQUEST,
+            "Nội dung tài liệu quá lớn, vượt quá giới hạn xử lý của mô hình AI. Vui lòng giảm bớt số lượng hoặc dung lượng tài liệu đính kèm"
     );
 
     private final HttpStatus status;

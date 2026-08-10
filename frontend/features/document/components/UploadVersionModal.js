@@ -77,7 +77,7 @@ export default function UploadVersionModal({ open, onClose, documentId, title, o
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Upload New Version">
+    <Modal open={open} onClose={onClose} title="Upload New Version" preventClose={submitting}>
       {title && (
         <p className="mb-4 text-sm text-text-muted">
           Document: <span className="text-text-secondary">{title}</span>

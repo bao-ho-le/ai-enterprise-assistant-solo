@@ -9,6 +9,7 @@ import com.enterprise.aiassistant.backend.ai.embedding.service.EmbeddingService;
 import com.enterprise.aiassistant.backend.ai.llm.dto.LLMRequest;
 import com.enterprise.aiassistant.backend.ai.llm.dto.LLMResponse;
 import com.enterprise.aiassistant.backend.ai.llm.service.LLMService;
+import com.enterprise.aiassistant.backend.ai.memory.service.ConversationMemoryService;
 import com.enterprise.aiassistant.backend.ai.message.entity.AIMessage;
 import com.enterprise.aiassistant.backend.ai.message.entity.AIMessageSource;
 import com.enterprise.aiassistant.backend.ai.message.enums.AIMessageRole;
@@ -43,6 +44,7 @@ public class DocumentQAServiceImpl implements DocumentQAService {
 
     private final EmbeddingService embeddingService;
     private final VectorStoreService vectorStoreService;
+    private final ConversationMemoryService conversationMemoryService;
     private final PromptBuilderService promptBuilderService;
     private final LLMService llmService;
     private final AIUsageLogService aiUsageLogService;
@@ -70,13 +72,17 @@ public class DocumentQAServiceImpl implements DocumentQAService {
         Long messageId = null;
 
         try {
+            // Context các lượt trước (chưa gồm câu hỏi hiện tại): giúp LLM hiểu tham chiếu
+            String conversationMemory = conversationMemoryService.buildMemoryContext(conversation.getId());
+
             List<SearchResult> relevantHits = attachedVersionIds.isEmpty()
                     ? List.of()
                     : retrieveRelevantChunks(question, attachedVersionIds);
 
             String prompt = promptBuilderService.buildDocumentQaPrompt(
                     question,
-                    relevantHits.stream().map(hit -> hit.getPayload().getContent()).toList()
+                    relevantHits.stream().map(hit -> hit.getPayload().getContent()).toList(),
+                    conversationMemory
             );
 
             LLMResponse llmResponse = llmService.generate(

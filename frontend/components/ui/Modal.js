@@ -3,15 +3,15 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 
-export default function Modal({ open, onClose, title, children, maxWidth = "max-w-lg" }) {
+export default function Modal({ open, onClose, title, children, maxWidth = "max-w-lg", preventClose = false }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !preventClose) onClose();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open, onClose, preventClose]);
 
   if (!open) return null;
 
@@ -23,7 +23,7 @@ export default function Modal({ open, onClose, title, children, maxWidth = "max-
     >
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={preventClose ? undefined : onClose}
       />
       <div
         className={`relative card w-full ${maxWidth} bg-bg-card p-6 shadow-2xl`}
@@ -35,6 +35,7 @@ export default function Modal({ open, onClose, title, children, maxWidth = "max-
             className="btn-ghost p-1.5"
             aria-label="Close"
             onClick={onClose}
+            disabled={preventClose}
           >
             <X className="h-4 w-4" />
           </button>

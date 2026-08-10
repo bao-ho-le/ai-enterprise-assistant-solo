@@ -257,9 +257,15 @@ public class FolderServiceImpl implements FolderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<FolderResponse> getDeletedFolders(Pageable pageable) {
+    public Page<FolderResponse> getDeletedFolders(String keyword, Pageable pageable) {
 
-        return folderRepository.findByStatusOrderByDeletedAtDesc(FolderStatus.DELETED, pageable)
+        if (keyword == null || keyword.isBlank()) {
+            return folderRepository.findByStatusOrderByDeletedAtDesc(FolderStatus.DELETED, pageable)
+                    .map(folderMapper::toFolderResponse);
+        }
+
+        return folderRepository
+                .findByStatusAndNameContainingIgnoreCaseOrderByDeletedAtDesc(FolderStatus.DELETED, keyword.trim(), pageable)
                 .map(folderMapper::toFolderResponse);
     }
 

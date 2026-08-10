@@ -31,7 +31,7 @@ export default function RenameConversationModal({ open, onClose, conversation, o
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Rename conversation" maxWidth="max-w-md">
+    <Modal open={open} onClose={onClose} title="Rename conversation" maxWidth="max-w-md" preventClose={submitting}>
       <form className="space-y-4" onSubmit={submit}>
         <div>
           <label htmlFor="rename-conversation-title" className="label-text">Title</label>

@@ -15,7 +15,13 @@ import com.enterprise.aiassistant.backend.ai.message.mapper.AIMessageMapper;
 import com.enterprise.aiassistant.backend.ai.conversation.repository.AIConversationRepository;
 import com.enterprise.aiassistant.backend.ai.message.repository.AIMessageRepository;
 import com.enterprise.aiassistant.backend.ai.message.repository.AIMessageSourceRepository;
+import com.enterprise.aiassistant.backend.ai.chat.service.ConversationSummaryChatService;
+import com.enterprise.aiassistant.backend.ai.chat.service.GeneralChatService;
+import com.enterprise.aiassistant.backend.ai.chat.service.SummaryChatService;
+import com.enterprise.aiassistant.backend.ai.intent.service.IntentClassifier;
+import com.enterprise.aiassistant.backend.ai.memory.service.ConversationMemoryService;
 import com.enterprise.aiassistant.backend.ai.qa.service.DocumentQAService;
+import com.enterprise.aiassistant.backend.ai.qa.service.QuestionRewriter;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.ConversationException;
 import com.enterprise.aiassistant.backend.document.entity.DocumentChunk;
@@ -46,6 +52,12 @@ public class AIMessageServiceImpl implements AIMessageService {
     private final AIMessageHelper messageHelper;
 
     private final DocumentQAService documentQAService;
+    private final QuestionRewriter questionRewriter;
+    private final SummaryChatService summaryChatService;
+    private final GeneralChatService generalChatService;
+    private final ConversationSummaryChatService conversationSummaryChatService;
+    private final IntentClassifier intentClassifier;
+    private final ConversationMemoryService conversationMemoryService;
 
 
     @Override
@@ -63,7 +75,19 @@ public class AIMessageServiceImpl implements AIMessageService {
         AIMessage userMessage = messageMapper.toMessage(conversation, AIMessageRole.USER, request.getContent());
         AIMessage savedUserMessage = messageRepository.save(userMessage);
 
-        AIMessage assistantMessage = documentQAService.answer(conversation, request.getContent());
+        AIMessage assistantMessage = answerByIntent(conversation, request.getContent());
+
+        // Chỉ cập nhật conversation memory sau khi assistant trả lời thành công.
+        // Tránh lưu user turn với một assistant response giả/null khi LLM hoặc các bước xử lý trước đó thất bại.
+        // Memory chỉ phản ánh những lượt hội thoại thực sự đã hoàn tất.
+        // Nếu appendTurn() thất bại, transaction sẽ xử lý lỗi theo cơ chế hiện tại.
+        if (assistantMessage != null) {
+            conversationMemoryService.appendTurn(
+                    conversation,
+                    request.getContent(),
+                    assistantMessage.getContent()
+            );
+        }
 
         return messageMapper.toMessageResponse(savedUserMessage, assistantMessage);
     }
@@ -78,7 +102,7 @@ public class AIMessageServiceImpl implements AIMessageService {
 
         getConversationOrThrow(conversationId);
 
-        // Phần này không dùng Pageble thuần được vì có khả năng lỗi khi lấy me, sử dụng beforeId để giải quyết
+        // Phần này không dùng Pageble thuần được vì có khả năng lỗi khi lấy message, sử dụng beforeId để giải quyết
         // Do nếu dùng page, để lấy thông tin trang 2, thì khi có message mới, trang 2 đã bị thay đổi, còn dùng
         // beforeId, đóng vai trò như một mark, dù có message mới thì mốc ban đầu không đổi
         // Phần PageRequest (là implements của Pageable) dùng để lấy limit = size
@@ -113,6 +137,31 @@ public class AIMessageServiceImpl implements AIMessageService {
 
 
     // Helper
+
+    // Chỉ DOCUMENT_QA cần retrieval; SUMMARY dùng full document text, GENERAL_CHAT không
+    // chạm tới tài liệu, CONVERSATION_SUMMARY chỉ dùng ConversationMemory.
+    // DocumentQAService tự lưu assistant message kèm evidence sources.
+    private AIMessage answerByIntent(AIConversation conversation, String content) {
+
+        return switch (intentClassifier.classify(content)) {
+            // Rewrite câu hỏi (dùng ConversationMemory để resolve reference như "nó", "loại thứ
+            // hai") trước khi retrieval, để embedding/Qdrant nhận standalone question thay vì
+            // câu phụ thuộc ngữ cảnh. AIMessage user đã lưu content gốc trước đó, không đổi.
+            case DOCUMENT_QA ->
+                    documentQAService.answer(conversation, questionRewriter.rewrite(conversation, content));
+            case SUMMARY -> saveAssistantMessage(conversation, summaryChatService.summarize(conversation, content));
+            case GENERAL_CHAT -> saveAssistantMessage(conversation, generalChatService.answer(content));
+            case CONVERSATION_SUMMARY ->
+                    saveAssistantMessage(conversation, conversationSummaryChatService.summarize(conversation, content));
+        };
+    }
+
+    private AIMessage saveAssistantMessage(AIConversation conversation, String content) {
+
+        return messageRepository.save(
+                messageMapper.toMessage(conversation, AIMessageRole.ASSISTANT, content)
+        );
+    }
 
     private Map<Long, DocumentChunk> loadEvidenceChunks(List<AIMessageSource> sources) {
 

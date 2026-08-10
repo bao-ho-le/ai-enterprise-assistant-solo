@@ -1,5 +1,7 @@
 // Mirrors backend enums: DocumentType, VersionStatus, sort options.
 
+import { FileText, FileSpreadsheet, File as FileIcon } from "lucide-react";
+
 export const DOCUMENT_TYPES = [
   { value: "EMAIL_TEMPLATE", label: "Email Template" },
   { value: "REPORT", label: "Report" },
@@ -82,3 +84,26 @@ export const EXTENSION_OPTIONS = [
 // Accept attribute + allowed MIME types for upload (matches backend DocumentHelper).
 export const UPLOAD_ACCEPT =
   ".pdf,.doc,.docx,.xls,.xlsx,.txt";
+
+// File Name icon + color, picked by extension (PDF red, Word blue, Excel green,
+// plain text neutral, anything else falls back to a generic file icon). Shared by
+// DocumentRow and any other place that renders a document by extension (e.g. the
+// Attach/Move document pickers) so the icon mapping only lives in one place.
+const EXTENSION_ICON = {
+  pdf: { Icon: FileText, bg: "bg-red-500/10", color: "text-red-400" },
+  doc: { Icon: FileText, bg: "bg-blue-500/10", color: "text-blue-400" },
+  docx: { Icon: FileText, bg: "bg-blue-500/10", color: "text-blue-400" },
+  xls: { Icon: FileSpreadsheet, bg: "bg-green-500/10", color: "text-green-400" },
+  xlsx: { Icon: FileSpreadsheet, bg: "bg-green-500/10", color: "text-green-400" },
+  txt: { Icon: FileText, bg: "bg-bg-elevated", color: "text-text-secondary" },
+};
+
+export function extensionIcon(extension) {
+  return (
+    EXTENSION_ICON[(extension || "").toLowerCase()] || {
+      Icon: FileIcon,
+      bg: "bg-bg-elevated",
+      color: "text-text-secondary",
+    }
+  );
+}

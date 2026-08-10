@@ -44,6 +44,7 @@ export default function FolderNameModal({ open, onClose, folder, parentFolderId,
       onClose={onClose}
       title={isRename ? "Edit folder name" : "New folder"}
       maxWidth="max-w-md"
+      preventClose={submitting}
     >
       <form className="space-y-4" onSubmit={submit}>
         <div>

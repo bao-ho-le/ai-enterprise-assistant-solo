@@ -216,8 +216,8 @@ export default function LeftSidebar({ conversationType, basePath }) {
                     <p
                       className={
                         active
-                          ? "flex-1 min-w-0 truncate text-sm font-medium text-text-primary"
-                          : "flex-1 min-w-0 truncate text-sm text-text-primary"
+                          ? "flex-1 min-w-0 truncate text-sm font-medium text-text-primary tabular-nums"
+                          : "flex-1 min-w-0 truncate text-sm text-text-primary tabular-nums"
                       }
                       title={c.title}
                     >

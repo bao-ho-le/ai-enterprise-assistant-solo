@@ -71,6 +71,12 @@ export function deleteDocument(id) {
   return apiClient.del(`/documents/${id}`);
 }
 
+// PUT /documents/{id}/move -> { documentId, folderId }. folderId null moves to root
+// (an explicit folder id, including root's own real id, works the same as null).
+export function moveDocument(id, folderId) {
+  return apiClient.putJson(`/documents/${id}/move`, { folderId });
+}
+
 // POST /documents/{id}/restore -> un-soft-deletes the same document (status back to
 // ACTIVE, deletedAt cleared). Only soft-deleted documents can be restored.
 export function restoreDocument(id) {

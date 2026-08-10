@@ -25,7 +25,7 @@ export function deleteFolder(folderId) {
   return apiClient.del(`/folders/${folderId}`);
 }
 
-// GET /folders/deleted -> Page<FolderResponse>, most recently deleted first.
+// GET /folders/deleted?keyword= -> Page<FolderResponse>, most recently deleted first.
 export function getDeletedFolders(params, signal) {
   return apiClient.get("/folders/deleted", { params, signal });
 }
@@ -34,4 +34,15 @@ export function getDeletedFolders(params, signal) {
 // (subfolders + the documents deleted with it) back to ACTIVE.
 export function restoreFolder(folderId) {
   return apiClient.postJson(`/folders/${folderId}/restore`);
+}
+
+// GET /folders/search?keyword=&page=&size= -> Page<FolderResponse> (ACTIVE only)
+export function searchFolders(keyword, params, signal) {
+  return apiClient.get("/folders/search", { params: { keyword, ...params }, signal });
+}
+
+// PUT /folders/{folderId}/move -> FolderResponse. targetParentId is required — pass
+// the root folder's real id (from getFolderContents' currentFolder.id) to move to root.
+export function moveFolder(folderId, targetParentId) {
+  return apiClient.putJson(`/folders/${folderId}/move`, { targetParentId });
 }
