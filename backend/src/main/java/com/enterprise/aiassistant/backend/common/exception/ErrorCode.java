@@ -507,10 +507,7 @@ public enum ErrorCode {
             UNAUTHORIZED,
             "Invalid or expired token."
     ),
-    USER_NOT_FOUND(
-            UNAUTHORIZED,
-            "User not found."
-    ),
+
     REFRESH_TOKEN_NOT_FOUND(
             UNAUTHORIZED,
             "Refresh token not found."
@@ -534,7 +531,17 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXISTS(
             BAD_REQUEST,
             "Email already exists."
+    ),
+
+
+
+    // ===================== User =====================
+    USER_NOT_FOUND(
+            UNAUTHORIZED,
+            "User not found."
     );
+
+
 
     private final HttpStatus status;
     private final String message;
