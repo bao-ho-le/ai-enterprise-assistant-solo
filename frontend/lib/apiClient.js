@@ -1,6 +1,8 @@
 // Thin fetch wrapper: base URL from env, ErrorResponseDto -> ApiError, JSON + raw (blob) support.
 // Every request in the app goes through here (via services/*), never fetch() in components.
 
+import { getAccessToken, clearTokens } from "@/lib/auth";
+
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
 
@@ -37,12 +39,17 @@ async function toError(res) {
 }
 
 async function request(path, { method = "GET", params, body, headers, signal } = {}) {
+  const token = getAccessToken();
   const res = await fetch(`${BASE_URL}${path}${buildQuery(params)}`, {
     method,
     body,
-    headers,
+    headers: token ? { ...headers, Authorization: `Bearer ${token}` } : headers,
     signal,
   });
+  if (res.status === 401 && !path.startsWith("/auth/")) {
+    clearTokens();
+    if (typeof window !== "undefined") window.location.href = "/login";
+  }
   if (!res.ok) throw await toError(res);
   return res;
 }
