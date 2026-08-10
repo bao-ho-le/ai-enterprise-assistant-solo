@@ -98,13 +98,14 @@ export default function DocumentRow({
             so the filename only truncates when it genuinely exceeds the
             available width. */}
         <div className="min-w-0">
-          <Link
-            href={`/file-storage/${doc.id}`}
-            className="block truncate text-xs font-medium text-text-primary hover:text-accent transition-colors"
+          {/* Plain text, not a Link: a Link here would navigate on the first
+              click and bypass the row's double-click-to-open behavior. */}
+          <span
+            className="block truncate text-xs font-medium text-text-primary"
             title={doc.title}
           >
             {doc.title}
-          </Link>
+          </span>
         </div>
       </div>
       <div

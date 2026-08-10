@@ -51,7 +51,7 @@ export default function MoveItemModal({ open, onClose, items, currentFolderId, o
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={title} maxWidth="max-w-2xl">
+    <Modal open={open} onClose={onClose} title={title} maxWidth="max-w-2xl" preventClose={submitting}>
       <FolderBrowserPicker
         active={open}
         mode="move"

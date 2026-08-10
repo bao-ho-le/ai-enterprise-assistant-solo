@@ -241,7 +241,7 @@ export default function UploadDocumentModal({ open, onClose, onUploaded, folderI
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Upload New Document" maxWidth="max-w-2xl">
+    <Modal open={open} onClose={onClose} title="Upload New Document" maxWidth="max-w-2xl" preventClose={submitting}>
       <form onSubmit={submit}>
         <div className="pb-6">
           <label htmlFor="upload-files-input" className="label-text">

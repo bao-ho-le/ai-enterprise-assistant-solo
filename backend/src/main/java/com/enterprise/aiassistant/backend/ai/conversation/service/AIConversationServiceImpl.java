@@ -25,6 +25,7 @@ import com.enterprise.aiassistant.backend.ai.conversation.dto.response.Conversat
 
 import com.enterprise.aiassistant.backend.ai.conversation.repository.AIConversationDocumentRepository;
 import com.enterprise.aiassistant.backend.ai.conversation.repository.AIConversationRepository;
+import com.enterprise.aiassistant.backend.ai.memory.repository.ConversationMemoryRepository;
 import com.enterprise.aiassistant.backend.ai.message.repository.AIMessageRepository;
 import com.enterprise.aiassistant.backend.ai.message.repository.AIMessageSourceRepository;
 import com.enterprise.aiassistant.backend.ai.message.service.AIMessageService;
@@ -78,6 +79,8 @@ public class AIConversationServiceImpl implements AIConversationService {
     private final AIMessageRepository messageRepository;
 
     private final AIMessageSourceRepository messageSourceRepository;
+
+    private final ConversationMemoryRepository conversationMemoryRepository;
 
     private final DocumentVersionRepository documentVersionRepository;
 
@@ -238,6 +241,7 @@ public class AIConversationServiceImpl implements AIConversationService {
 
         messageSourceRepository.deleteByAiMessage_ConversationId(conversationId);
         messageRepository.deleteByConversationId(conversationId);
+        conversationMemoryRepository.deleteByConversationId(conversationId);
         conversationDocumentRepository.deleteByConversationId(conversationId);
         generationRepository.deleteByAiConversationId(conversationId);
         if (!generatedContentIds.isEmpty()) {

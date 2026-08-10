@@ -79,6 +79,53 @@ public class PromptBuilderService {
             Vietnamese, write entirely in standard Vietnamese with full diacritics (tone \
             marks and vowel marks) on every word — never unaccented Vietnamese ("khong \
             dau") — and do not mix in English words or phrases unless there is no natural \
+            Vietnamese equivalent.
+
+            Conversation memory is contextual information from earlier turns. Use it only \
+            to understand references and conversational context. Do not treat memory as \
+            authoritative document evidence. When answering questions about document \
+            facts, rely on the provided document excerpts; if memory and the excerpts \
+            disagree, the excerpts win.""";
+
+    // Độ dài mục tiêu của memory summary sau khi nén (ký tự), khớp với ngưỡng nén
+    // trong ConversationMemoryHelper.
+    private static final int MEMORY_SUMMARY_TARGET_CHARACTERS = 6000;
+
+    // Standing instructions appended to every Conversation Summary answer — trả lời
+    // user dựa trên conversation memory, không phải nén memory nội bộ.
+    private static final String CONVERSATION_SUMMARY_BASE_INSTRUCTIONS = PLAIN_TEXT_INSTRUCTIONS + """
+
+
+            Do not use headings, code blocks, or tables of any kind, Markdown or \
+            otherwise. If a list is needed, use plain numbering ("1.", "2.") or a plain \
+            bullet ("•") — never a Markdown list marker.
+
+            Summarize only what the conversation memory actually contains: do not add \
+            information, do not invent turns that are not there, and do not answer \
+            questions about attached documents. Follow the length and shape the user asked \
+            for — if they asked for notes, produce something they can paste straight into \
+            their notes. If the memory does not contain enough information to answer, say \
+            so plainly.
+
+            Answer in the same language the message was written in. If that language is \
+            Vietnamese, write entirely in standard Vietnamese with full diacritics (tone \
+            marks and vowel marks) on every word — never unaccented Vietnamese ("khong \
+            dau") — and do not mix in English words or phrases unless there is no natural \
+            Vietnamese equivalent.""";
+
+    // Standing instructions appended to every General Chat answer. Same plain-text
+    // constraint as the other flows — the chat UI renders raw text, not Markdown.
+    private static final String GENERAL_CHAT_BASE_INSTRUCTIONS = PLAIN_TEXT_INSTRUCTIONS + """
+
+
+            Do not use headings, code blocks, or tables of any kind, Markdown or \
+            otherwise. If a list is needed, use plain numbering ("1.", "2.") or a plain \
+            bullet ("•") — never a Markdown list marker.
+
+            Answer in the same language the message was written in. If that language is \
+            Vietnamese, write entirely in standard Vietnamese with full diacritics (tone \
+            marks and vowel marks) on every word — never unaccented Vietnamese ("khong \
+            dau") — and do not mix in English words or phrases unless there is no natural \
             Vietnamese equivalent.""";
 
     public String buildEmailPrompt(EmailGenerationInput input) {
@@ -184,7 +231,11 @@ public class PromptBuilderService {
         );
     }
 
-    public String buildDocumentQaPrompt(String question, List<String> contextChunks) {
+    public String buildDocumentQaPrompt(
+            String question,
+            List<String> contextChunks,
+            String conversationMemory
+    ) {
 
         String context = contextChunks == null || contextChunks.isEmpty()
                 ? "No relevant passages were found."
@@ -195,9 +246,147 @@ public class PromptBuilderService {
 
                 %s
 
+                Conversation memory:
+                %s
+
                 Document excerpts:
                 %s
-                """.formatted(question, DOCUMENT_QA_BASE_INSTRUCTIONS, context);
+                """.formatted(
+                question,
+                DOCUMENT_QA_BASE_INSTRUCTIONS,
+                valueOrDefault(conversationMemory, "No previous conversation context."),
+                context
+        );
+    }
+
+    // Nén memory nội bộ (không phải câu trả lời cho user): gộp summarizedContext cũ +
+    // pendingContext thành một summarizedContext mới ngắn hơn.
+    public String buildConversationMemorySummaryPrompt(
+            String summarizedContext,
+            String pendingContext
+    ) {
+
+        return """
+                Compress the conversation context below into a single memory summary that will be \
+                reused as context for the next turns of this same conversation.
+
+                Keep: the topics being discussed, decisions already made, the user's requirements and \
+                preferences, important entities/terms/numbers, and anything needed to understand \
+                follow-up questions and references ("that number", "the previous one", ...).
+
+                Drop: greetings, small talk, repetition, and wording that carries no information.
+
+                Write at most %d characters, shorter if the important information still fits. Write \
+                compact plain prose in the language of the conversation. Do not use Markdown or any \
+                other rich-text formatting.
+
+                Do not add information that is not present below. Do not answer any question found in \
+                the context. Output only the memory summary and nothing else.
+
+                Previous memory summary:
+                %s
+
+                New conversation turns since that summary:
+                %s
+                """.formatted(
+                MEMORY_SUMMARY_TARGET_CHARACTERS,
+                valueOrDefault(summarizedContext, "None."),
+                valueOrDefault(pendingContext, "None.")
+        );
+    }
+
+    // Trả lời user khi họ hỏi về chính cuộc hội thoại (intent CONVERSATION_SUMMARY).
+    // Khác memory summary: đây là output user đọc/copy được, độ dài theo yêu cầu của user.
+    public String buildConversationSummaryPrompt(
+            String message,
+            String conversationMemory
+    ) {
+
+        return """
+                The user is asking about the current conversation itself, not about any attached \
+                document. Answer their request using only the conversation memory below.
+
+                %s
+
+                Conversation memory:
+                %s
+
+                User message:
+                %s
+                """.formatted(
+                CONVERSATION_SUMMARY_BASE_INSTRUCTIONS,
+                valueOrDefault(conversationMemory, "No previous conversation context."),
+                message
+        );
+    }
+
+    public String buildGeneralChatPrompt(String message) {
+
+        return """
+                Reply to the user's message as a helpful assistant. The user is not asking about any \
+                attached document, so answer from general knowledge.
+
+                %s
+
+                User message:
+                %s
+                """.formatted(GENERAL_CHAT_BASE_INSTRUCTIONS, message);
+    }
+
+    // Chạy trước Document QA retrieval, không phải câu trả lời cho user: output đi thẳng
+    // vào embedding + Qdrant nên không cần PLAIN_TEXT_INSTRUCTIONS, chỉ cần đúng 1 câu hỏi.
+    public String buildQuestionRewritePrompt(
+            String userMessage,
+            String conversationMemory
+    ) {
+
+        return """
+                You are a question rewriting component for a document question-answering system.
+
+                Rewrite the current user message into a standalone question that can be understood \
+                without the previous conversation. Use the conversation context only to resolve \
+                references and omitted subjects — pronouns like "it", "that", "nó", "cái đó", "phần \
+                đó", ordinal references like "the second one", "loại thứ hai", or an implied subject.
+
+                If the current message is already self-contained, return it unchanged.
+
+                Do not answer the question. Do not add facts that are not supported by the \
+                conversation context. Do not change the user's intent or the language they wrote in.
+
+                Output only the rewritten question and nothing else — no explanation, no Markdown, \
+                no surrounding quotation marks.
+
+                Conversation context:
+                %s
+
+                Current user message:
+                %s
+                """.formatted(
+                valueOrDefault(conversationMemory, "No previous conversation context."),
+                userMessage
+        );
+    }
+
+    // Routing-only prompt: the model classifies the message, it never answers it.
+    // Output is parsed straight into the Intent enum, so no extra text is allowed.
+    public String buildIntentClassificationPrompt(String message) {
+
+        return """
+                Classify the user's message into exactly one intent.
+
+                DOCUMENT_QA: The user is asking a question that should be answered using the attached documents.
+                SUMMARY: The user wants to summarize, condense, overview, or extract the key points from the attached documents.
+                CONVERSATION_SUMMARY: The user wants a summary or an overview of the current conversation itself — what has been discussed or asked so far in this chat, the main points exchanged, or notes about this conversation. Not about the attached documents.
+                GENERAL_CHAT: The user is having a normal conversation or asking something that does not require information from the attached documents.
+
+                SUMMARY is about the documents. CONVERSATION_SUMMARY is about this chat. If the message mentions "this conversation", "we", "so far", "just now" ("nãy giờ", "cuộc hội thoại này", "chúng ta vừa trao đổi"), choose CONVERSATION_SUMMARY.
+
+                Reply with exactly one of these values and nothing else: DOCUMENT_QA, SUMMARY, GENERAL_CHAT, CONVERSATION_SUMMARY.
+                Do not answer the message. Do not explain. Do not add quotes, punctuation, or any other text.
+
+                User message:
+                %s
+                """.formatted(message);
     }
 
     private String valueOrDefault(String value, String fallback) {

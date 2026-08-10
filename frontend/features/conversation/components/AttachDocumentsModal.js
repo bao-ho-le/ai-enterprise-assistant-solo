@@ -62,7 +62,7 @@ export default function AttachDocumentsModal({ open, onClose, conversationId, al
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Attach documents" maxWidth="max-w-2xl">
+    <Modal open={open} onClose={onClose} title="Attach documents" maxWidth="max-w-2xl" preventClose={submitting}>
       <FolderBrowserPicker
         active={open}
         mode="attach"
