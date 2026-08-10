@@ -34,7 +34,8 @@ public class ConversationSummaryChatServiceImpl implements ConversationSummaryCh
             String message
     ) {
 
-        validateSummarizeRequest(conversation, message);
+        aiConversationHelper.validateConversationId(conversation.getId());
+        messageHelper.validateContent(message);
 
         String conversationMemory = conversationMemoryService.buildMemoryContext(conversation.getId());
 
@@ -46,21 +47,5 @@ public class ConversationSummaryChatServiceImpl implements ConversationSummaryCh
         );
 
         return llmResponse.getContent();
-    }
-
-
-    // Helper
-
-    private void validateSummarizeRequest(
-            AIConversation conversation,
-            String message
-    ) {
-
-        if (conversation == null) {
-            throw new AIConversationException(ErrorCode.CONVERSATION_NOT_FOUND);
-        }
-
-        aiConversationHelper.validateConversationId(conversation.getId());
-        messageHelper.validateContent(message);
     }
 }

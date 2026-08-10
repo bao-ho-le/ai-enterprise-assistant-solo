@@ -7,11 +7,10 @@ import com.enterprise.aiassistant.backend.ai.llm.dto.LLMResponse;
 import com.enterprise.aiassistant.backend.ai.llm.service.LLMService;
 import com.enterprise.aiassistant.backend.ai.memory.entity.ConversationMemory;
 import com.enterprise.aiassistant.backend.ai.memory.helper.ConversationMemoryHelper;
+import com.enterprise.aiassistant.backend.ai.memory.mapper.MemoryMapper;
 import com.enterprise.aiassistant.backend.ai.memory.repository.ConversationMemoryRepository;
-import com.enterprise.aiassistant.backend.ai.message.helper.AIMessageHelper;
 import com.enterprise.aiassistant.backend.ai.prompt.service.PromptBuilderService;
-import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
-import com.enterprise.aiassistant.backend.common.exception.business_exception.AIConversationException;
+
 import com.enterprise.aiassistant.backend.common.exception.business_exception.LLMException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,9 @@ public class ConversationMemoryServiceImpl implements ConversationMemoryService 
 
     private final ConversationMemoryHelper memoryHelper;
     private final AIConversationHelper aiConversationHelper;
-    private final AIMessageHelper messageHelper;
+    private final ConversationMemoryHelper conversationMemoryHelper;
+    private final MemoryMapper memoryMapper;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -51,12 +52,12 @@ public class ConversationMemoryServiceImpl implements ConversationMemoryService 
             String assistantResponse
     ) {
 
-        validateTurn(conversation, userMessage, assistantResponse);
+        conversationMemoryHelper.validateTurn(conversation, userMessage, assistantResponse);
 
         // Lazy-create: chỉ conversation thực sự có lượt chat mới sinh memory row.
         ConversationMemory memory = conversationMemoryRepository
                 .findByConversationIdForUpdate(conversation.getId())
-                .orElseGet(() -> newMemory(conversation));
+                .orElseGet(() -> memoryMapper.toEntity(conversation));
 
         memory.setPendingContext(
                 memoryHelper.appendTurn(memory.getPendingContext(), userMessage, assistantResponse)
@@ -106,28 +107,5 @@ public class ConversationMemoryServiceImpl implements ConversationMemoryService 
         }
     }
 
-    private ConversationMemory newMemory(AIConversation conversation) {
 
-        return ConversationMemory.builder()
-                .conversation(conversation)
-                .build();
-    }
-
-    private void validateTurn(
-            AIConversation conversation,
-            String userMessage,
-            String assistantResponse
-    ) {
-
-        if (conversation == null) {
-            throw new AIConversationException(ErrorCode.CONVERSATION_NOT_FOUND);
-        }
-
-        aiConversationHelper.validateConversationId(conversation.getId());
-        messageHelper.validateContent(userMessage);
-
-        if (assistantResponse == null || assistantResponse.isBlank()) {
-            throw new AIConversationException(ErrorCode.MESSAGE_CONTENT_REQUIRED);
-        }
-    }
 }

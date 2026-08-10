@@ -1,5 +1,10 @@
 package com.enterprise.aiassistant.backend.ai.memory.helper;
 
+import com.enterprise.aiassistant.backend.ai.conversation.entity.AIConversation;
+import com.enterprise.aiassistant.backend.ai.conversation.helper.AIConversationHelper;
+import com.enterprise.aiassistant.backend.ai.message.helper.AIMessageHelper;
+import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
+import com.enterprise.aiassistant.backend.common.exception.business_exception.AIConversationException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,8 +16,33 @@ public class ConversationMemoryHelper {
 
     private static final String EMPTY_CONTEXT = "No previous conversation context.";
 
-    // Memory phải giữ cả câu hỏi lẫn câu trả lời, nếu không các lượt sau không hiểu
-    // assistant đã trả lời gì.
+    private final AIConversationHelper aiConversationHelper;
+    private final AIMessageHelper messageHelper;
+
+    public ConversationMemoryHelper(AIConversationHelper aiConversationHelper, AIMessageHelper messageHelper) {
+        this.aiConversationHelper = aiConversationHelper;
+        this.messageHelper = messageHelper;
+    }
+
+    public void validateTurn(
+            AIConversation conversation,
+            String userMessage,
+            String assistantResponse
+    ) {
+
+        if (conversation == null) {
+            throw new AIConversationException(ErrorCode.CONVERSATION_NOT_FOUND);
+        }
+
+        aiConversationHelper.validateConversationId(conversation.getId());
+        messageHelper.validateContent(userMessage);
+
+        if (assistantResponse == null || assistantResponse.isBlank()) {
+            throw new AIConversationException(ErrorCode.MESSAGE_CONTENT_REQUIRED);
+        }
+    }
+
+
     public String appendTurn(
             String pendingContext,
             String userMessage,
