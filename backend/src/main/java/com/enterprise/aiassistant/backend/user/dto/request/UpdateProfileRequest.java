@@ -13,7 +13,6 @@ import lombok.*;
 @Builder
 public class UpdateProfileRequest {
 
-    Secrets Detected
     @NotBlank(message = "Họ tên không được để trống")
     @Size(max = 100)
     private String fullName;
