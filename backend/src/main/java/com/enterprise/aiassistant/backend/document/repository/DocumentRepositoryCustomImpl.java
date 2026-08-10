@@ -29,7 +29,7 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
 
 
         StringBuilder jpql = new StringBuilder("""
-                
+
                 SELECT new com.enterprise.aiassistant.backend.document.dto.response.DocumentListResponse(
                     d.id,
                     d.title,
@@ -42,16 +42,16 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
                     d.folder.id,
                     d.deletedAt
                 )
+
+                    FROM Document d
                 
-                FROM Document d
+                    JOIN d.currentVersion v
                 
-                JOIN d.currentVersion v
+                    JOIN v.file f
                 
-                JOIN v.file f
+                    WHERE 1=1
                 
-                WHERE 1=1
-                
-            """);
+                """);
 
 
         Map<String, Object> params = new HashMap<>();
@@ -94,13 +94,13 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
         StringBuilder jpql = new StringBuilder("""
                 
                 SELECT COUNT(d)
-
+                
                 FROM Document d
-
+                
                 JOIN d.currentVersion v
-
+                
                 JOIN v.file f
-
+                
                 WHERE 1=1
                 
                 """);
@@ -126,7 +126,6 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
     ) {
 
 
-
         // =========================
         // Keyword
         // =========================
@@ -140,8 +139,6 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
                     "%" + filter.getKeyword() + "%"
             );
         }
-
-
 
 
         // =========================

@@ -1,19 +1,13 @@
 package com.enterprise.aiassistant.backend.ai.usage.entity;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-
 import com.enterprise.aiassistant.backend.ai.usage.enums.AIUsageStatus;
 import com.enterprise.aiassistant.backend.ai.usage.enums.ConversationType;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(

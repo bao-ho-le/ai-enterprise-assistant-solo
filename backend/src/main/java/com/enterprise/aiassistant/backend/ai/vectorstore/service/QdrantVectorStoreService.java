@@ -8,7 +8,6 @@ import com.enterprise.aiassistant.backend.ai.vectorstore.mapper.VectorStoreMappe
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.VectorStoreException;
 import com.google.common.util.concurrent.Futures;
-import io.qdrant.client.ConditionFactory;
 import io.qdrant.client.PointIdFactory;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.WithPayloadSelectorFactory;

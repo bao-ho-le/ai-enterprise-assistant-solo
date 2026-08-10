@@ -1,15 +1,13 @@
 package com.enterprise.aiassistant.backend.ai.usage.dto.request;
 
-import java.time.LocalDateTime;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
 import com.enterprise.aiassistant.backend.ai.usage.enums.AIUsageStatus;
 import com.enterprise.aiassistant.backend.ai.usage.enums.ConversationType;
-
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
 
 @Data
 public class AIUsageLogFilterRequest {

@@ -1,7 +1,7 @@
 package com.enterprise.aiassistant.backend.ai.conversation.dto.response;
 
-import com.enterprise.aiassistant.backend.ai.usage.enums.ConversationType;
 import com.enterprise.aiassistant.backend.ai.generation.enums.GenerationStatus;
+import com.enterprise.aiassistant.backend.ai.usage.enums.ConversationType;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

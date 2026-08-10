@@ -1,69 +1,46 @@
 package com.enterprise.aiassistant.backend.ai.conversation.service;
 
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.AttachDocumentsRequest;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.ConversationFilterRequest;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.CreateConversationRequest;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.RenameConversationRequest;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.StartGenerationConversationRequest;
-import com.enterprise.aiassistant.backend.ai.message.dto.request.SendMessageRequest;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.StartDocumentQaConversationRequest;
-import com.enterprise.aiassistant.backend.ai.message.dto.response.MessagePageResponse;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.AttachDocumentsResponse;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.DocumentQaConversationDetailResponse;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.GenerationConversationDetailResponse;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.ConversationResponse;
-import com.enterprise.aiassistant.backend.ai.message.dto.response.MessageResponse;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.StartDocumentQaConversationResponse;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.StartGenerationConversationResponse;
+import com.enterprise.aiassistant.backend.ai.conversation.dto.request.*;
+import com.enterprise.aiassistant.backend.ai.conversation.dto.response.*;
 import com.enterprise.aiassistant.backend.ai.conversation.entity.AIConversation;
 import com.enterprise.aiassistant.backend.ai.conversation.entity.AIConversationDocument;
 import com.enterprise.aiassistant.backend.ai.conversation.enums.ConversationStatus;
 import com.enterprise.aiassistant.backend.ai.conversation.helper.AIConversationHelper;
 import com.enterprise.aiassistant.backend.ai.conversation.mapper.AIConversationMapper;
-
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.ConversationDocumentResponse;
-
 import com.enterprise.aiassistant.backend.ai.conversation.repository.AIConversationDocumentRepository;
 import com.enterprise.aiassistant.backend.ai.conversation.repository.AIConversationRepository;
+import com.enterprise.aiassistant.backend.ai.generation.dto.request.TriggerGenerationRequest;
+import com.enterprise.aiassistant.backend.ai.generation.dto.response.GenerationResponse;
+import com.enterprise.aiassistant.backend.ai.generation.dto.response.TriggerGenerationResponse;
+import com.enterprise.aiassistant.backend.ai.generation.entity.GeneratedContent;
+import com.enterprise.aiassistant.backend.ai.generation.entity.Generation;
+import com.enterprise.aiassistant.backend.ai.generation.mapper.GeneratedMapper;
+import com.enterprise.aiassistant.backend.ai.generation.repository.GeneratedContentRepository;
+import com.enterprise.aiassistant.backend.ai.generation.repository.GenerationRepository;
+import com.enterprise.aiassistant.backend.ai.generation.service.GenerationService;
 import com.enterprise.aiassistant.backend.ai.memory.repository.ConversationMemoryRepository;
+import com.enterprise.aiassistant.backend.ai.message.dto.request.SendMessageRequest;
+import com.enterprise.aiassistant.backend.ai.message.dto.response.MessagePageResponse;
+import com.enterprise.aiassistant.backend.ai.message.dto.response.MessageResponse;
 import com.enterprise.aiassistant.backend.ai.message.repository.AIMessageRepository;
 import com.enterprise.aiassistant.backend.ai.message.repository.AIMessageSourceRepository;
 import com.enterprise.aiassistant.backend.ai.message.service.AIMessageService;
-
 import com.enterprise.aiassistant.backend.ai.usage.enums.ConversationType;
 import com.enterprise.aiassistant.backend.ai.usage.repository.AIUsageLogRepository;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AIConversationException;
+import com.enterprise.aiassistant.backend.common.exception.business_exception.ConversationException;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.DocumentException;
 import com.enterprise.aiassistant.backend.document.entity.DocumentVersion;
 import com.enterprise.aiassistant.backend.document.enums.DocumentStatus;
 import com.enterprise.aiassistant.backend.document.repository.DocumentVersionRepository;
-import com.enterprise.aiassistant.backend.ai.generation.dto.request.TriggerGenerationRequest;
-import com.enterprise.aiassistant.backend.ai.generation.dto.response.TriggerGenerationResponse;
-import com.enterprise.aiassistant.backend.ai.generation.entity.Generation;
-import com.enterprise.aiassistant.backend.ai.generation.entity.GeneratedContent;
-import com.enterprise.aiassistant.backend.ai.generation.repository.GenerationRepository;
-import com.enterprise.aiassistant.backend.ai.generation.service.GenerationService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-
-import com.enterprise.aiassistant.backend.common.exception.business_exception.ConversationException;
-
-import com.enterprise.aiassistant.backend.ai.generation.dto.response.GenerationResponse;
-import com.enterprise.aiassistant.backend.ai.generation.mapper.GeneratedMapper;
-import com.enterprise.aiassistant.backend.ai.generation.repository.GeneratedContentRepository;
 import org.springframework.data.domain.Slice;
-
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -421,7 +398,6 @@ public class AIConversationServiceImpl implements AIConversationService {
                 .findByAiConversationIdOrderByCreatedAtDesc(conversationId, pageable)
                 .map(generatedMapper::toGenerationResponse);
     }
-
 
 
     // Helper

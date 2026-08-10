@@ -16,10 +16,10 @@ public class QdrantConfig {
     public QdrantClient qdrantClient() {
 
         QdrantGrpcClient grpcClient = QdrantGrpcClient.newBuilder(
-                        properties.getHost(),
-                        properties.getGrpcPort(),
-                        properties.getUseTls()
-                ).build();
+                properties.getHost(),
+                properties.getGrpcPort(),
+                properties.getUseTls()
+        ).build();
 
         return new QdrantClient(grpcClient);
     }

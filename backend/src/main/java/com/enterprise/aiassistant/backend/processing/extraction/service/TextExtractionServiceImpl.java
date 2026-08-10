@@ -18,7 +18,7 @@ public class TextExtractionServiceImpl implements TextExtractionService {
     public ExtractedText extract(
             Resource resource,
             String mimeType
-    ){
+    ) {
 
         TextExtractor extractor =
                 extractorFactory.getExtractor(mimeType);

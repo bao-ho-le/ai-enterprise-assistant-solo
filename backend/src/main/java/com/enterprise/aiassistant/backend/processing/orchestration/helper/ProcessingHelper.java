@@ -28,7 +28,7 @@ public class ProcessingHelper {
     // Chặn các trường hợp document đã được xử lí thành công
     public void validateStatus(DocumentVersion version) {
 
-        if(version.getStatus() == VersionStatus.READY){
+        if (version.getStatus() == VersionStatus.READY) {
 
             throw new BusinessException(
                     ErrorCode.DOCUMENT_VERSION_INVALID_STATUS
@@ -66,7 +66,7 @@ public class ProcessingHelper {
     ) {
         boolean alreadySucceeded =
                 version != null
-                && version.getStatus() == VersionStatus.READY;
+                        && version.getStatus() == VersionStatus.READY;
 
         if (!alreadySucceeded) {
             ProcessingStep failedStep =

@@ -1,7 +1,6 @@
 package com.enterprise.aiassistant.backend.ai.conversation.entity;
 
 
-
 import com.enterprise.aiassistant.backend.ai.conversation.enums.ConversationStatus;
 
 

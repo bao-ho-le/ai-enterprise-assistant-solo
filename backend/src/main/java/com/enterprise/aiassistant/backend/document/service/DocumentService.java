@@ -32,6 +32,7 @@ public interface DocumentService {
     Resource loadProcessingResource(
             Long versionId
     );
+
     void deleteDocument(Long documentId);
 
     DocumentRestoreResponse restoreDocument(Long documentId);

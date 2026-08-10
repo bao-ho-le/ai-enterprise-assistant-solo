@@ -6,7 +6,6 @@ import com.enterprise.aiassistant.backend.ai.conversation.helper.AIConversationH
 import com.enterprise.aiassistant.backend.ai.conversation.repository.AIConversationDocumentRepository;
 import com.enterprise.aiassistant.backend.ai.embedding.dto.EmbeddingResult;
 import com.enterprise.aiassistant.backend.ai.embedding.service.EmbeddingService;
-import com.enterprise.aiassistant.backend.ai.llm.dto.LLMRequest;
 import com.enterprise.aiassistant.backend.ai.llm.dto.LLMResponse;
 import com.enterprise.aiassistant.backend.ai.llm.service.LLMService;
 import com.enterprise.aiassistant.backend.ai.memory.service.ConversationMemoryService;
@@ -24,7 +23,6 @@ import com.enterprise.aiassistant.backend.ai.usage.service.AIUsageLogService;
 import com.enterprise.aiassistant.backend.ai.vectorstore.dto.SearchResult;
 import com.enterprise.aiassistant.backend.ai.vectorstore.dto.VectorPayload;
 import com.enterprise.aiassistant.backend.ai.vectorstore.service.VectorStoreService;
-import com.enterprise.aiassistant.backend.document.entity.DocumentChunk;
 import com.enterprise.aiassistant.backend.document.repository.DocumentChunkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

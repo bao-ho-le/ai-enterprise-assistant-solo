@@ -1,26 +1,9 @@
 package com.enterprise.aiassistant.backend.ai.conversation.service;
 
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.AttachDocumentsRequest;
-
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.ConversationFilterRequest;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.CreateConversationRequest;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.RenameConversationRequest;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.AttachDocumentsResponse;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.DocumentQaConversationDetailResponse;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.GenerationConversationDetailResponse;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.ConversationResponse;
-import org.springframework.data.domain.Pageable;
-
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.StartDocumentQaConversationRequest;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.StartGenerationConversationRequest;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.request.UpdateConversationRequest;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.StartDocumentQaConversationResponse;
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.StartGenerationConversationResponse;
-
-import com.enterprise.aiassistant.backend.ai.conversation.dto.response.ConversationDocumentResponse;
-
+import com.enterprise.aiassistant.backend.ai.conversation.dto.request.*;
+import com.enterprise.aiassistant.backend.ai.conversation.dto.response.*;
 import com.enterprise.aiassistant.backend.ai.generation.dto.response.GenerationResponse;
-
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
 import java.util.List;

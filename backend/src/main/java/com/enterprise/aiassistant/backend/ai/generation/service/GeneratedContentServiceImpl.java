@@ -1,9 +1,6 @@
-
 package com.enterprise.aiassistant.backend.ai.generation.service;
 
 
-import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
-import com.enterprise.aiassistant.backend.common.exception.business_exception.GeneratedException;
 import com.enterprise.aiassistant.backend.ai.generation.dto.request.UpdateGeneratedContentRequest;
 import com.enterprise.aiassistant.backend.ai.generation.dto.response.GeneratedContentDetailResponse;
 import com.enterprise.aiassistant.backend.ai.generation.dto.response.GeneratedContentResponse;
@@ -12,6 +9,8 @@ import com.enterprise.aiassistant.backend.ai.generation.enums.GeneratedDocumentT
 import com.enterprise.aiassistant.backend.ai.generation.helper.GeneratedHelper;
 import com.enterprise.aiassistant.backend.ai.generation.mapper.GeneratedMapper;
 import com.enterprise.aiassistant.backend.ai.generation.repository.GeneratedContentRepository;
+import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
+import com.enterprise.aiassistant.backend.common.exception.business_exception.GeneratedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;

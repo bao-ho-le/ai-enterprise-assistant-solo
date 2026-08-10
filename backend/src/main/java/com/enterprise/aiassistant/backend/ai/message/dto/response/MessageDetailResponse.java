@@ -1,10 +1,8 @@
 package com.enterprise.aiassistant.backend.ai.message.dto.response;
 
 import com.enterprise.aiassistant.backend.ai.message.enums.AIMessageRole;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;

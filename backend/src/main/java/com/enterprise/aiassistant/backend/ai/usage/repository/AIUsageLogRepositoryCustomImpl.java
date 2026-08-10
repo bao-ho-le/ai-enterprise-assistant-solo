@@ -25,13 +25,13 @@ public class AIUsageLogRepositoryCustomImpl implements AIUsageLogRepositoryCusto
     public Page<AIUsageLog> filterUsageLogs(AIUsageLogFilterRequest filter, Pageable pageable) {
 
         StringBuilder jpql = new StringBuilder("""
-
+                
                 SELECT u
-
+                
                 FROM AIUsageLog u
-
+                
                 WHERE 1=1
-
+                
                 """);
 
         Map<String, Object> params = new HashMap<>();
@@ -58,13 +58,13 @@ public class AIUsageLogRepositoryCustomImpl implements AIUsageLogRepositoryCusto
     public List<AIUsageLog> filterUsageLogs(AIUsageLogFilterRequest filter) {
 
         StringBuilder jpql = new StringBuilder("""
-
+                
                 SELECT u
-
+                
                 FROM AIUsageLog u
-
+                
                 WHERE 1=1
-
+                
                 """);
 
         Map<String, Object> params = new HashMap<>();
@@ -83,13 +83,13 @@ public class AIUsageLogRepositoryCustomImpl implements AIUsageLogRepositoryCusto
     private long countUsageLogs(AIUsageLogFilterRequest filter) {
 
         StringBuilder jpql = new StringBuilder("""
-
+                
                 SELECT COUNT(u)
-
+                
                 FROM AIUsageLog u
-
+                
                 WHERE 1=1
-
+                
                 """);
 
         Map<String, Object> params = new HashMap<>();

@@ -1,7 +1,7 @@
 package com.enterprise.aiassistant.backend.ai.message.mapper;
 
-import com.enterprise.aiassistant.backend.ai.message.dto.response.*;
 import com.enterprise.aiassistant.backend.ai.conversation.entity.AIConversation;
+import com.enterprise.aiassistant.backend.ai.message.dto.response.*;
 import com.enterprise.aiassistant.backend.ai.message.entity.AIMessage;
 import com.enterprise.aiassistant.backend.ai.message.entity.AIMessageSource;
 import com.enterprise.aiassistant.backend.ai.message.enums.AIMessageRole;

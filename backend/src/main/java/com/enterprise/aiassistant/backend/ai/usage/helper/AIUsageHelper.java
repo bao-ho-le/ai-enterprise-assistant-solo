@@ -1,20 +1,19 @@
 package com.enterprise.aiassistant.backend.ai.usage.helper;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-
-import jakarta.persistence.criteria.Predicate;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import com.enterprise.aiassistant.backend.ai.usage.dto.request.AIUsageLogFilterRequest;
 import com.enterprise.aiassistant.backend.ai.usage.dto.request.AIUsageLogRequest;
 import com.enterprise.aiassistant.backend.ai.usage.entity.AIUsageLog;
 import com.enterprise.aiassistant.backend.ai.usage.enums.AIUsageStatus;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.BusinessException;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 public class AIUsageHelper {

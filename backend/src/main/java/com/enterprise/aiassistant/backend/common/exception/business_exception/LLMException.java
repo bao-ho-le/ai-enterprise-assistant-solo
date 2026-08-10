@@ -6,7 +6,7 @@ public class LLMException extends BusinessException {
 
     public LLMException(
             ErrorCode errorCode
-    ){
+    ) {
         super(
                 errorCode
         );
@@ -15,7 +15,7 @@ public class LLMException extends BusinessException {
     public LLMException(
             ErrorCode errorCode,
             Throwable cause
-    ){
+    ) {
         super(
                 errorCode,
                 errorCode.getMessage(),
@@ -27,7 +27,7 @@ public class LLMException extends BusinessException {
             ErrorCode errorCode,
             String message,
             Throwable cause
-    ){
+    ) {
         super(
                 errorCode,
                 message,

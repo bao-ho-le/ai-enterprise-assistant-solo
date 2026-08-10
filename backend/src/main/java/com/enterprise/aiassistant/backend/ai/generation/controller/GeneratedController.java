@@ -1,4 +1,3 @@
-
 package com.enterprise.aiassistant.backend.ai.generation.controller;
 
 import com.enterprise.aiassistant.backend.ai.generation.dto.request.UpdateGeneratedContentRequest;

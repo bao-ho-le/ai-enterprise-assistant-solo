@@ -203,15 +203,15 @@ public class DocumentHelper {
         );
     }
 
-    public void validateDocumentId(Long documentId){
+    public void validateDocumentId(Long documentId) {
 
-        if(documentId == null){
+        if (documentId == null) {
             throw new DocumentException(
                     ErrorCode.DOCUMENT_ID_REQUIRED
             );
         }
 
-        if(documentId <= 0){
+        if (documentId <= 0) {
             throw new DocumentException(ErrorCode.DOCUMENT_ID_INVALID);
         }
     }
@@ -255,17 +255,17 @@ public class DocumentHelper {
 
     public void validateVersionRequest(
             UploadNewVersionRequest request
-    ){
+    ) {
 
-        if(request == null){
+        if (request == null) {
 
             throw new BusinessException(
                     ErrorCode.REQUEST_REQUIRED
             );
         }
 
-        if(request.getChangeNote() != null &&
-                request.getChangeNote().length() > 255){
+        if (request.getChangeNote() != null &&
+                request.getChangeNote().length() > 255) {
 
             throw new BusinessException(
                     ErrorCode.CHANGE_NOTE_TOO_LONG
@@ -276,9 +276,9 @@ public class DocumentHelper {
         validateDescriptionIfPresent(request.getDescription());
     }
 
-    public void validateDocumentStatus(Document document){
+    public void validateDocumentStatus(Document document) {
 
-        if(document.getStatus() == DocumentStatus.DELETED){
+        if (document.getStatus() == DocumentStatus.DELETED) {
 
             throw new DocumentException(
                     ErrorCode.DOCUMENT_DELETED
@@ -299,9 +299,9 @@ public class DocumentHelper {
 
     public void validateUpdateMetadataRequest(
             DocumentUpdateMetadataRequest request
-    ){
+    ) {
 
-        if(request == null){
+        if (request == null) {
 
             throw new BusinessException(
                     ErrorCode.REQUEST_REQUIRED
@@ -311,33 +311,33 @@ public class DocumentHelper {
 
     public void validateMetadata(
             DocumentUpdateMetadataRequest request
-    ){
+    ) {
         validateTitleIfPresent(request.getTitle());
         validateDescriptionIfPresent(request.getDescription());
     }
 
-    private void validateTitleIfPresent(String title){
+    private void validateTitleIfPresent(String title) {
 
-        if(title == null){
+        if (title == null) {
             return;
         }
 
-        if(title.isBlank()){
+        if (title.isBlank()) {
             throw new BusinessException(
                     ErrorCode.DOCUMENT_TITLE_REQUIRED
             );
         }
 
-        if(title.length() > 255){
+        if (title.length() > 255) {
             throw new BusinessException(
                     ErrorCode.TITLE_TOO_LONG
             );
         }
     }
 
-    private void validateDescriptionIfPresent(String description){
+    private void validateDescriptionIfPresent(String description) {
 
-        if(description != null && description.length() > 1000){
+        if (description != null && description.length() > 1000) {
             throw new BusinessException(
                     ErrorCode.DESCRIPTION_TOO_LONG
             );
@@ -356,18 +356,19 @@ public class DocumentHelper {
         }
     }
 
-    public void validateDocumentVersion(Long versionId){
-        if(versionId == null){
+    public void validateDocumentVersion(Long versionId) {
+        if (versionId == null) {
             throw new DocumentException(
                     ErrorCode.DOCUMENT_VERSION_NOT_FOUND
             );
         }
     }
-    public void validateFileStorageMetadata(FileEntity file){
+
+    public void validateFileStorageMetadata(FileEntity file) {
 
         if (file == null) {
-        throw new FileStorageException(ErrorCode.FILE_NOT_FOUND);
-    }
+            throw new FileStorageException(ErrorCode.FILE_NOT_FOUND);
+        }
 
         if (file.getBucketName() == null
                 || file.getBucketName().isBlank()

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProcessingMapper {
 
-    public DocumentText toDocumentText(DocumentVersion version, ExtractedText extractedText ) {
+    public DocumentText toDocumentText(DocumentVersion version, ExtractedText extractedText) {
         return DocumentText.builder()
                 .documentVersion(version)
                 .content(extractedText.getContent())

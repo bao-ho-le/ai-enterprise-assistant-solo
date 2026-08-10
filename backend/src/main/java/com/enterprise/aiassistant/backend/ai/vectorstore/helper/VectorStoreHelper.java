@@ -105,7 +105,7 @@ public class VectorStoreHelper {
             );
         }
 
-        if(documentId != null && documentId <= 0){
+        if (documentId != null && documentId <= 0) {
             throw new DocumentException(ErrorCode.DOCUMENT_ID_INVALID);
         }
     }

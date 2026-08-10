@@ -1,18 +1,17 @@
 package com.enterprise.aiassistant.backend.ai.message.service;
 
+import com.enterprise.aiassistant.backend.ai.conversation.entity.AIConversation;
+import com.enterprise.aiassistant.backend.ai.conversation.enums.ConversationStatus;
+import com.enterprise.aiassistant.backend.ai.conversation.repository.AIConversationRepository;
 import com.enterprise.aiassistant.backend.ai.message.dto.request.SendMessageRequest;
-import com.enterprise.aiassistant.backend.ai.message.dto.response.AIMessageResponse;
 import com.enterprise.aiassistant.backend.ai.message.dto.response.MessageDetailResponse;
 import com.enterprise.aiassistant.backend.ai.message.dto.response.MessagePageResponse;
 import com.enterprise.aiassistant.backend.ai.message.dto.response.MessageResponse;
-import com.enterprise.aiassistant.backend.ai.conversation.entity.AIConversation;
 import com.enterprise.aiassistant.backend.ai.message.entity.AIMessage;
 import com.enterprise.aiassistant.backend.ai.message.entity.AIMessageSource;
 import com.enterprise.aiassistant.backend.ai.message.enums.AIMessageRole;
-import com.enterprise.aiassistant.backend.ai.conversation.enums.ConversationStatus;
 import com.enterprise.aiassistant.backend.ai.message.helper.AIMessageHelper;
 import com.enterprise.aiassistant.backend.ai.message.mapper.AIMessageMapper;
-import com.enterprise.aiassistant.backend.ai.conversation.repository.AIConversationRepository;
 import com.enterprise.aiassistant.backend.ai.message.repository.AIMessageRepository;
 import com.enterprise.aiassistant.backend.ai.message.repository.AIMessageSourceRepository;
 import com.enterprise.aiassistant.backend.ai.chat.service.ConversationSummaryChatService;
@@ -32,7 +31,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -133,7 +131,6 @@ public class AIMessageServiceImpl implements AIMessageService {
 
         return messageMapper.toDetailResponse(message, sources, chunksById);
     }
-
 
 
     // Helper

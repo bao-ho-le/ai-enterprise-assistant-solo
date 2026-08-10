@@ -22,7 +22,7 @@ public class FileTestController {
     @PostMapping("/upload")
     public ResponseEntity<?> upload(
             @RequestParam("file") MultipartFile file
-    ){
+    ) {
 
         StoredFileDto result =
                 fileStorageService.store(file);

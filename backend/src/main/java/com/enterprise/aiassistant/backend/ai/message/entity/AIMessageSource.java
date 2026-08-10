@@ -9,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 
-
 @Entity
 @Table(
         name = "ai_message_sources",

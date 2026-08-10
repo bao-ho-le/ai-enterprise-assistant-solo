@@ -1,4 +1,5 @@
 package com.enterprise.aiassistant.backend.ai.usage.repository;
+
 import com.enterprise.aiassistant.backend.ai.usage.entity.AIUsageLog;
 import com.enterprise.aiassistant.backend.ai.usage.enums.AIUsageStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
-
 
 
 import java.time.LocalDateTime;
