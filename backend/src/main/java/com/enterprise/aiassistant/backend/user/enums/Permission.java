@@ -1,4 +1,4 @@
-package com.enterprise.aiassistant.backend.user.entity;
+package com.enterprise.aiassistant.backend.user.enums;
 
 // Permission catalog do hệ thống định nghĩa — không cho phép tạo permission tuỳ ý lúc runtime.
 // Admin chỉ được gán/bỏ gán các permission trong danh sách này cho 4 base role.

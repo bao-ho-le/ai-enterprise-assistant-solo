@@ -9,7 +9,7 @@ import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.BusinessException;
 import com.enterprise.aiassistant.backend.department.entity.Department;
 import com.enterprise.aiassistant.backend.department.repository.DepartmentRepository;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import com.enterprise.aiassistant.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

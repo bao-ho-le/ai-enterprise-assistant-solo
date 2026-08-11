@@ -4,7 +4,7 @@ import com.enterprise.aiassistant.backend.ai.analytics.usage.dto.request.AIUsage
 import com.enterprise.aiassistant.backend.auth.security.UserPrincipal;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthorizationException;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
 import org.springframework.stereotype.Component;
 
 // Thu hẹp filter theo permission của người gọi. Client gửi userId/departmentId gì cũng bị ghi đè,

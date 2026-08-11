@@ -5,8 +5,8 @@ import com.enterprise.aiassistant.backend.admin.role.dto.UpdateRolePermissionsRe
 import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthorizationException;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import com.enterprise.aiassistant.backend.user.service.RolePermissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

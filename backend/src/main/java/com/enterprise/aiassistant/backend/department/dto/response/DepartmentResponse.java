@@ -15,10 +15,6 @@ public class DepartmentResponse {
 
     private String description;
 
-    private Long managerId;
-
-    private String managerName;
-
     private long memberCount;
 
     private LocalDateTime createdAt;

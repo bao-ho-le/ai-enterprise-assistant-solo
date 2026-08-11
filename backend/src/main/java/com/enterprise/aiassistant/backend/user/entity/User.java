@@ -1,6 +1,7 @@
 package com.enterprise.aiassistant.backend.user.entity;
 
 import com.enterprise.aiassistant.backend.department.entity.Department;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

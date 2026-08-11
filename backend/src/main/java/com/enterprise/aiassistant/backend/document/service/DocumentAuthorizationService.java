@@ -8,7 +8,7 @@ import com.enterprise.aiassistant.backend.document.dto.DocumentAccessScope;
 import com.enterprise.aiassistant.backend.document.entity.Document;
 import com.enterprise.aiassistant.backend.document.helper.DocumentAuthorizationHelper;
 import com.enterprise.aiassistant.backend.document.repository.DocumentAccessRepository;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

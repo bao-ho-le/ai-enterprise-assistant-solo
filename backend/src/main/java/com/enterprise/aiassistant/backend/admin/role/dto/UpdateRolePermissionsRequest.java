@@ -1,6 +1,6 @@
 package com.enterprise.aiassistant.backend.admin.role.dto;
 
-import com.enterprise.aiassistant.backend.user.entity.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

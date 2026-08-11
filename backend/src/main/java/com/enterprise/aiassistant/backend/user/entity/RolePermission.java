@@ -1,5 +1,7 @@
 package com.enterprise.aiassistant.backend.user.entity;
 
+import com.enterprise.aiassistant.backend.user.enums.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 

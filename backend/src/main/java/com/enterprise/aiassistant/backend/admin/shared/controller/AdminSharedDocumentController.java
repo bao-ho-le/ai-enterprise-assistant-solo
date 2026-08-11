@@ -5,7 +5,7 @@ import com.enterprise.aiassistant.backend.document.dto.response.DocumentShareRes
 import com.enterprise.aiassistant.backend.document.mapper.DocumentMapper;
 import com.enterprise.aiassistant.backend.document.repository.DocumentAccessRepository;
 import com.enterprise.aiassistant.backend.document.service.DocumentService;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

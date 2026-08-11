@@ -169,7 +169,7 @@ export default function AdminDepartmentsPage() {
         <table className="w-full min-w-[900px] border-collapse">
           <thead>
             <tr className="border-b border-border-default">
-              {["Name", "Manager", "Members", "Created", ""].map((h, i) => (
+              {["Name", "Members", "Created", ""].map((h, i) => (
                 <th
                   key={h || i}
                   className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary"
@@ -181,7 +181,7 @@ export default function AdminDepartmentsPage() {
           </thead>
           <tbody>
             <AdminTableState
-              colSpan={5}
+              colSpan={4}
               loading={loading}
               error={error}
               empty={!loading && !error && departments.length === 0}
@@ -203,7 +203,6 @@ export default function AdminDepartmentsPage() {
                       <p className="mt-0.5 line-clamp-1 text-xs text-text-muted">{d.description}</p>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-xs text-text-secondary">{d.managerName ?? "—"}</td>
                   <td className="px-4 py-2">
                     <span className="badge badge-neutral">{d.memberCount}</span>
                   </td>

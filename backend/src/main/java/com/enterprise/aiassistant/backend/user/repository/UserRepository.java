@@ -1,6 +1,6 @@
 package com.enterprise.aiassistant.backend.user.repository;
 
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

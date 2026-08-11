@@ -24,14 +24,10 @@ public class DepartmentMapper {
 
     public DepartmentResponse toResponse(Department department, long memberCount) {
 
-        User manager = department.getManager();
-
         return DepartmentResponse.builder()
                 .departmentId(department.getId())
                 .name(department.getName())
                 .description(department.getDescription())
-                .managerId(manager != null ? manager.getId() : null)
-                .managerName(manager != null ? manager.getFullName() : null)
                 .memberCount(memberCount)
                 .createdAt(department.getCreatedAt())
                 .build();

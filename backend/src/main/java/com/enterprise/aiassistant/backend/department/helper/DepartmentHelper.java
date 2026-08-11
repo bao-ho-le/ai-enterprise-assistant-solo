@@ -7,7 +7,7 @@ import com.enterprise.aiassistant.backend.department.dto.request.AddDepartmentMe
 import com.enterprise.aiassistant.backend.department.dto.request.CreateDepartmentRequest;
 import com.enterprise.aiassistant.backend.department.dto.request.UpdateDepartmentRequest;
 import com.enterprise.aiassistant.backend.department.entity.Department;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import org.springframework.stereotype.Component;
 
