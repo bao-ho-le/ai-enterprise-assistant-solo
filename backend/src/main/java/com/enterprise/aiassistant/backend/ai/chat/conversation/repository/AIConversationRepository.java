@@ -20,6 +20,8 @@ public interface AIConversationRepository extends JpaRepository<AIConversation, 
 
     boolean existsByIdAndStatus(Long conversationId, ConversationStatus status);
 
+    long countByUserId(Long userId);
+
     @Query(
             value = """
                     SELECT new com.enterprise.aiassistant.backend.ai.chat.conversation.dto.response.ConversationResponse(
@@ -35,13 +37,15 @@ public interface AIConversationRepository extends JpaRepository<AIConversation, 
                     )
                     FROM AIConversation c
                     WHERE c.status = :status
-                    AND (:conversationType IS NULL OR c.conversationType = :conversationType)
+                    AND c.user.id = :userId
+                    AND (CAST(:conversationType AS string) IS NULL OR c.conversationType = :conversationType)
                     ORDER BY c.createdAt DESC
                     """
     )
     Slice<ConversationResponse> filterConversations(
             @Param("conversationType") ConversationType conversationType,
             @Param("status") ConversationStatus status,
+            @Param("userId") Long userId,
             Pageable pageable
     );
 
@@ -62,12 +66,14 @@ public interface AIConversationRepository extends JpaRepository<AIConversation, 
                     )
                     FROM AIConversation c
                     WHERE c.status = com.enterprise.aiassistant.backend.ai.chat.conversation.enums.ConversationStatus.DELETED
-                    AND (:conversationType IS NULL OR c.conversationType = :conversationType)
+                    AND c.user.id = :userId
+                    AND (CAST(:conversationType AS string) IS NULL OR c.conversationType = :conversationType)
                     ORDER BY c.deletedAt DESC
                     """
     )
     Slice<ConversationResponse> filterDeletedConversations(
             @Param("conversationType") ConversationType conversationType,
+            @Param("userId") Long userId,
             Pageable pageable
     );
 

@@ -107,3 +107,20 @@ export async function downloadCurrentVersion(documentId) {
     detail?.currentVersion?.fileName
   );
 }
+
+// ===================== Shared documents =====================
+
+// GET /documents/{documentId}/shares -> DocumentShareResponse[]
+export function getDocumentShares(documentId, signal) {
+  return apiClient.get(`/documents/${documentId}/shares`, { signal });
+}
+
+// POST /documents/{documentId}/shares { targetUserId } -> DocumentShareResponse
+export function shareDocument(documentId, targetUserId) {
+  return apiClient.postJson(`/documents/${documentId}/shares`, { targetUserId });
+}
+
+// DELETE /documents/{documentId}/shares/{targetUserId}
+export function revokeDocumentShare(documentId, targetUserId) {
+  return apiClient.del(`/documents/${documentId}/shares/${targetUserId}`);
+}

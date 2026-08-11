@@ -1,8 +1,14 @@
 package com.enterprise.aiassistant.backend.document.service;
 
+import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.DocumentException;
+import com.enterprise.aiassistant.backend.common.exception.business_exception.UserException;
 import com.enterprise.aiassistant.backend.document.dto.request.*;
+import com.enterprise.aiassistant.backend.document.entity.DocumentAccess;
+import com.enterprise.aiassistant.backend.document.repository.DocumentAccessRepository;
+import com.enterprise.aiassistant.backend.user.entity.User;
+import com.enterprise.aiassistant.backend.user.repository.UserRepository;
 import com.enterprise.aiassistant.backend.document.dto.response.*;
 import com.enterprise.aiassistant.backend.document.entity.Document;
 import com.enterprise.aiassistant.backend.document.entity.DocumentVersion;
@@ -56,6 +62,14 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final FolderService folderService;
 
+    private final CurrentUserService currentUserService;
+
+    private final DocumentAuthorizationService documentAuthorizationService;
+
+    private final DocumentAccessRepository documentAccessRepository;
+
+    private final UserRepository userRepository;
+
 
     @Override
     @Transactional
@@ -66,6 +80,10 @@ public class DocumentServiceImpl implements DocumentService {
 
         documentHelper.validateFiles(files);
         documentHelper.validateBatchRequest(files, request.getDocuments());
+
+        documentAuthorizationService.requireCreate();
+
+        User owner = currentUserService.getCurrentUser();
 
         List<DocumentUploadResponse> responses =
                 new ArrayList<>();
@@ -98,7 +116,7 @@ public class DocumentServiceImpl implements DocumentService {
             Folder folder = folderService.resolveTargetFolder(item.getFolderId());
 
             Document document =
-                    documentMapper.toDocument(item, folder);
+                    documentMapper.toDocument(item, folder, owner, owner.getDepartment());
 
             documentRepository.save(document);
 
@@ -156,6 +174,8 @@ public class DocumentServiceImpl implements DocumentService {
 
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocumentException(DOCUMENT_NOT_FOUND));
+
+        documentAuthorizationService.requireUpdate(document);
 
         documentHelper.validateDocumentStatus(document);
 
@@ -219,6 +239,8 @@ public class DocumentServiceImpl implements DocumentService {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocumentException(DOCUMENT_NOT_FOUND));
 
+        documentAuthorizationService.requireUpdate(document);
+
         // Nếu document đã bị delete thì không cho cập nhật
         documentHelper.validateDocumentStatus(document);
 
@@ -252,6 +274,8 @@ public class DocumentServiceImpl implements DocumentService {
 
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocumentException(ErrorCode.DOCUMENT_NOT_FOUND));
+
+        documentAuthorizationService.requireDownload(document);
 
         documentHelper.validateDocumentStatus(document);
 
@@ -309,10 +333,14 @@ public class DocumentServiceImpl implements DocumentService {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocumentException(ErrorCode.DOCUMENT_NOT_FOUND));
 
+        documentAuthorizationService.requireDelete(document);
+
         documentHelper.validateDocumentStatus(document);
 
+        // Soft delete: file vật lý trong storage được giữ nguyên để restore lại được.
         document.setStatus(DocumentStatus.DELETED);
         document.setDeletedAt(java.time.LocalDateTime.now());
+        document.setDeletedBy(currentUserService.getCurrentUser());
         documentRepository.save(document);
     }
 
@@ -325,10 +353,13 @@ public class DocumentServiceImpl implements DocumentService {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocumentException(DOCUMENT_NOT_FOUND));
 
+        documentAuthorizationService.requireDelete(document);
+
         documentHelper.validateDocumentIsDeleted(document);
 
         document.setStatus(DocumentStatus.ACTIVE);
         document.setDeletedAt(null);
+        document.setDeletedBy(null);
         documentRepository.save(document);
 
         return documentMapper.toRestoreResponse(document);
@@ -340,7 +371,26 @@ public class DocumentServiceImpl implements DocumentService {
 
         documentHelper.validateFilter(filter);
 
-        return documentRepository.filterDocuments(filter, pageable);
+        return documentRepository.filterDocuments(
+                filter,
+                documentAuthorizationService.currentAccessScope(),
+                pageable
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<DocumentListResponse> getDocumentsForAdmin(DocumentFilterRequest filter, Pageable pageable) {
+
+        documentHelper.validateFilter(filter);
+
+        // Controller đã chặn @PreAuthorize("hasRole('ADMIN')"), nên currentAccessScope()
+        // luôn trả về unrestricted=true ở đây — không truyền null để bypass ABAC.
+        return documentRepository.filterDocuments(
+                filter,
+                documentAuthorizationService.currentAccessScope(),
+                pageable
+        );
     }
 
     @Override
@@ -350,6 +400,8 @@ public class DocumentServiceImpl implements DocumentService {
 
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocumentException(DOCUMENT_NOT_FOUND));
+
+        documentAuthorizationService.requireRead(document);
 
         DocumentVersion currentVersion = document.getCurrentVersion();
         FileEntity currentFile = currentVersion.getFile();
@@ -386,6 +438,8 @@ public class DocumentServiceImpl implements DocumentService {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocumentException(DOCUMENT_NOT_FOUND));
 
+        documentAuthorizationService.requireUpdate(document);
+
         documentHelper.validateDocumentStatus(document);
 
         // folderId = null nghĩa là chuyển về thư mục gốc, không phải bỏ ra ngoài mọi folder.
@@ -398,4 +452,71 @@ public class DocumentServiceImpl implements DocumentService {
         return documentMapper.toDocumentMoveResponse(document, folder);
     }
 
+
+    // ===================== Shared documents =====================
+
+    @Override
+    @Transactional
+    public DocumentShareResponse shareDocument(Long documentId, ShareDocumentRequest request) {
+
+        documentHelper.validateDocumentId(documentId);
+        documentHelper.validateShareRequest(request);
+
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new DocumentException(DOCUMENT_NOT_FOUND));
+
+        documentAuthorizationService.requireManageAccess(document);
+
+        documentHelper.validateDocumentStatus(document);
+
+        User targetUser = userRepository.findById(request.getTargetUserId())
+                .orElseThrow(() -> new UserException(ErrorCode.TARGET_USER_NOT_FOUND));
+
+        documentHelper.validateShareTarget(document, targetUser);
+
+        if (documentAccessRepository.existsByDocumentIdAndUserId(documentId, targetUser.getId())) {
+            throw new DocumentException(ErrorCode.DOCUMENT_ACCESS_ALREADY_GRANTED);
+        }
+
+        DocumentAccess access = documentAccessRepository.save(
+                documentMapper.toDocumentAccess(document, targetUser, currentUserService.getCurrentUser())
+        );
+
+        return documentMapper.toShareResponse(access);
+    }
+
+    @Override
+    @Transactional
+    public void revokeDocumentAccess(Long documentId, Long targetUserId) {
+
+        documentHelper.validateDocumentId(documentId);
+        documentHelper.validateTargetUserId(targetUserId);
+
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new DocumentException(DOCUMENT_NOT_FOUND));
+
+        documentAuthorizationService.requireManageAccess(document);
+
+        DocumentAccess access = documentAccessRepository
+                .findByDocumentIdAndUserId(documentId, targetUserId)
+                .orElseThrow(() -> new DocumentException(ErrorCode.DOCUMENT_ACCESS_NOT_FOUND));
+
+        documentAccessRepository.delete(access);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DocumentShareResponse> getDocumentShares(Long documentId) {
+
+        documentHelper.validateDocumentId(documentId);
+
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new DocumentException(DOCUMENT_NOT_FOUND));
+
+        documentAuthorizationService.requireRead(document);
+
+        return documentAccessRepository.findByDocumentIdOrderByCreatedAtAsc(documentId).stream()
+                .map(documentMapper::toShareResponse)
+                .toList();
+    }
 }

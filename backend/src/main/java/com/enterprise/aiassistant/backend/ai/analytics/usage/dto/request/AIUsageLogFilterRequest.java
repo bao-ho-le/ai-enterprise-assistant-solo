@@ -25,6 +25,11 @@ public class AIUsageLogFilterRequest {
 
     private AIUsageStatus status;
 
+    // Bị service ghi đè theo permission scope của người gọi — client không tự nới rộng được.
+    private Long userId;
+
+    private Long departmentId;
+
 
     @AssertTrue(message = "fromDate phải nhỏ hơn hoặc bằng toDate")
     public boolean isValidDateRange() {

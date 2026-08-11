@@ -1,8 +1,10 @@
 package com.enterprise.aiassistant.backend.document.entity;
 
+import com.enterprise.aiassistant.backend.department.entity.Department;
 import com.enterprise.aiassistant.backend.document.enums.DocumentStatus;
 import com.enterprise.aiassistant.backend.document.enums.DocumentType;
 import com.enterprise.aiassistant.backend.folder.entity.Folder;
+import com.enterprise.aiassistant.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,7 +30,13 @@ import java.util.List;
                         columnList = "created_at"),
                 @Index(
                         name = "idx_document_folder_id",
-                        columnList = "folder_id")
+                        columnList = "folder_id"),
+                @Index(
+                        name = "idx_document_owner_id",
+                        columnList = "owner_id"),
+                @Index(
+                        name = "idx_document_department_id",
+                        columnList = "department_id")
         }
 )
 @Getter
@@ -61,6 +69,16 @@ public class Document {
     @Column(nullable = false, name = "document_type")
     private DocumentType documentType;
 
+    // Nullable vì dữ liệu cũ được tạo trước khi có ownership. Document không có owner/department
+    // được coi là tài liệu dùng chung: mọi người có DOCUMENT_READ đều đọc được, chỉ ADMIN sửa được.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private User owner;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(nullable = false)
@@ -74,6 +92,10 @@ public class Document {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deleted_by")
+    private User deletedBy;
 
     @OneToMany(
             mappedBy = "document",

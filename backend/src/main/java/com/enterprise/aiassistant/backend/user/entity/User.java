@@ -1,5 +1,6 @@
 package com.enterprise.aiassistant.backend.user.entity;
 
+import com.enterprise.aiassistant.backend.department.entity.Department;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -33,6 +34,11 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
+
+    // Nullable: user cũ (tạo trước khi có Department) và ADMIN/SUPERVISOR không bắt buộc thuộc phòng ban.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
 
     @Column(nullable = false)
     @Builder.Default

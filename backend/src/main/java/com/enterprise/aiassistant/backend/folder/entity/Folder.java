@@ -1,6 +1,8 @@
 package com.enterprise.aiassistant.backend.folder.entity;
 
+import com.enterprise.aiassistant.backend.department.entity.Department;
 import com.enterprise.aiassistant.backend.folder.enums.FolderStatus;
+import com.enterprise.aiassistant.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,7 +22,13 @@ import java.util.List;
                         columnList = "status"),
                 @Index(
                         name = "idx_folder_created_at",
-                        columnList = "created_at")
+                        columnList = "created_at"),
+                @Index(
+                        name = "idx_folder_owner_id",
+                        columnList = "owner_id"),
+                @Index(
+                        name = "idx_folder_department_id",
+                        columnList = "department_id")
         }
 )
 @Getter
@@ -42,6 +50,15 @@ public class Folder {
     @JoinColumn(name = "parent_id")
     private Folder parent;
 
+    // Null = folder dùng chung (thư mục gốc và dữ liệu cũ): mọi role có FOLDER_READ đều đọc được.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private User owner;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(nullable = false)
@@ -55,6 +72,10 @@ public class Folder {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deleted_by")
+    private User deletedBy;
 
     @OneToMany(
             mappedBy = "parent",

@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class AIUsageLogResponse {
 
+    private Long userId;
+    private Long departmentId;
     private LocalDateTime createdAt;
     private ConversationType conversationType;
     private String model;

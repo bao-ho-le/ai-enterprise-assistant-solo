@@ -5,10 +5,12 @@ import com.enterprise.aiassistant.backend.ai.chat.conversation.dto.request.Creat
 import com.enterprise.aiassistant.backend.ai.chat.conversation.dto.request.RenameConversationRequest;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.dto.request.StartDocumentQaConversationRequest;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.dto.request.StartGenerationConversationRequest;
+import com.enterprise.aiassistant.backend.ai.chat.conversation.entity.AIConversation;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.entity.AIConversationDocument;
 import com.enterprise.aiassistant.backend.ai.analytics.usage.enums.ConversationType;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AIConversationException;
+import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthorizationException;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.BusinessException;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.DocumentException;
 import com.enterprise.aiassistant.backend.document.entity.DocumentVersion;
@@ -152,6 +154,16 @@ public class AIConversationHelper {
 
         if (!GENERATION_CONVERSATION_TYPES.contains(conversationType)) {
             throw new AIConversationException(ErrorCode.CONVERSATION_TYPE_NOT_GENERATION);
+        }
+    }
+
+    // Conversation là dữ liệu riêng tư: chỉ chính chủ được đọc/sửa/xoá, kể cả ADMIN cũng không.
+    public void validateOwnership(AIConversation conversation, Long currentUserId) {
+
+        if (conversation.getUser() == null
+                || !conversation.getUser().getId().equals(currentUserId)) {
+
+            throw new AuthorizationException(ErrorCode.ACCESS_DENIED);
         }
     }
 }

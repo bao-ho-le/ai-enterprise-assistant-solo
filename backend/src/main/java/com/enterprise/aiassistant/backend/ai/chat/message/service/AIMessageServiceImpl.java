@@ -1,5 +1,7 @@
 package com.enterprise.aiassistant.backend.ai.chat.message.service;
 
+import com.enterprise.aiassistant.backend.ai.chat.conversation.helper.AIConversationHelper;
+import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.entity.AIConversation;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.enums.ConversationStatus;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.repository.AIConversationRepository;
@@ -14,9 +16,9 @@ import com.enterprise.aiassistant.backend.ai.chat.message.helper.AIMessageHelper
 import com.enterprise.aiassistant.backend.ai.chat.message.mapper.AIMessageMapper;
 import com.enterprise.aiassistant.backend.ai.chat.message.repository.AIMessageRepository;
 import com.enterprise.aiassistant.backend.ai.chat.message.repository.AIMessageSourceRepository;
-import com.enterprise.aiassistant.backend.ai.chat.handler.ConversationSummaryChatService;
-import com.enterprise.aiassistant.backend.ai.chat.handler.GeneralChatService;
-import com.enterprise.aiassistant.backend.ai.chat.handler.SummaryChatService;
+import com.enterprise.aiassistant.backend.ai.chat.handler.service.ConversationSummaryChatService;
+import com.enterprise.aiassistant.backend.ai.chat.handler.service.GeneralChatService;
+import com.enterprise.aiassistant.backend.ai.chat.handler.service.SummaryChatService;
 import com.enterprise.aiassistant.backend.ai.chat.intent.service.IntentClassifier;
 import com.enterprise.aiassistant.backend.ai.chat.memory.service.ConversationMemoryService;
 import com.enterprise.aiassistant.backend.ai.knowledge.qa.service.DocumentQAService;
@@ -42,6 +44,10 @@ import java.util.stream.Collectors;
 public class AIMessageServiceImpl implements AIMessageService {
 
     private final AIConversationRepository conversationRepository;
+
+    private final AIConversationHelper aiConversationHelper;
+
+    private final CurrentUserService currentUserService;
     private final AIMessageRepository messageRepository;
     private final AIMessageSourceRepository messageSourceRepository;
     private final DocumentChunkRepository documentChunkRepository;
@@ -176,8 +182,13 @@ public class AIMessageServiceImpl implements AIMessageService {
 
         messageHelper.validateConversationId(conversationId);
 
-        return conversationRepository.findByIdAndStatus(conversationId, ConversationStatus.ACTIVE)
+        AIConversation conversation = conversationRepository
+                .findByIdAndStatus(conversationId, ConversationStatus.ACTIVE)
                 .orElseThrow(() -> new ConversationException(ErrorCode.CONVERSATION_NOT_FOUND));
+
+        aiConversationHelper.validateOwnership(conversation, currentUserService.getCurrentUserId());
+
+        return conversation;
     }
 
     private AIMessage getMessageOrThrow(Long conversationId, Long messageId) {

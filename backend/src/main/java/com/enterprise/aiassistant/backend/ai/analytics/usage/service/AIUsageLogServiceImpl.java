@@ -8,6 +8,10 @@ import com.enterprise.aiassistant.backend.ai.analytics.usage.dto.response.AIUsag
 import com.enterprise.aiassistant.backend.ai.analytics.usage.entity.AIUsageLog;
 import com.enterprise.aiassistant.backend.ai.analytics.usage.event.AIUsageLogEvent;
 import com.enterprise.aiassistant.backend.ai.analytics.usage.helper.AIUsageHelper;
+import com.enterprise.aiassistant.backend.ai.analytics.usage.helper.AIUsageScopeHelper;
+import com.enterprise.aiassistant.backend.auth.security.UserPrincipal;
+import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
+import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthorizationException;
 import com.enterprise.aiassistant.backend.ai.analytics.usage.mapper.AIUsageLogMapper;
 import com.enterprise.aiassistant.backend.ai.analytics.usage.repository.AIUsageDailyProjection;
 import com.enterprise.aiassistant.backend.ai.analytics.usage.repository.AIUsageLogRepository;
@@ -36,6 +40,8 @@ public class AIUsageLogServiceImpl implements AIUsageLogService {
     private final AIUsageLogMapper aiUsageLogMapper;
     private final AIUsageLogRepository aiUsageLogRepository;
     private final AIUsageHelper aiUsageHelper;
+    private final AIUsageScopeHelper aiUsageScopeHelper;
+    private final CurrentUserService currentUserService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
 
@@ -47,7 +53,26 @@ public class AIUsageLogServiceImpl implements AIUsageLogService {
     public void logAiUsage(AIUsageLogRequest request) {
         aiUsageHelper.validateLogRequest(request);
 
+        attachOwner(request);
+
         applicationEventPublisher.publishEvent(new AIUsageLogEvent(request));
+    }
+
+    // Gắn owner ngay tại thread của request. Log phát sinh từ worker nền (embedding lúc xử lý
+    // document) không có SecurityContext nên owner để trống — đó là log của hệ thống, không của user.
+    private void attachOwner(AIUsageLogRequest request) {
+
+        if (request.getUserId() != null) {
+            return;
+        }
+
+        try {
+            UserPrincipal principal = currentUserService.getCurrentPrincipal();
+            request.setUserId(principal.getId());
+            request.setDepartmentId(principal.getDepartmentId());
+        } catch (AuthorizationException ignored) {
+            // Tiến trình nền, không có user đăng nhập
+        }
     }
 
     // The outer transaction has already committed by this point, so the thread's transaction
@@ -66,6 +91,8 @@ public class AIUsageLogServiceImpl implements AIUsageLogService {
     public Page<AIUsageLogResponse> getUsageLogs(AIUsageLogFilterRequest filter, Pageable pageable) {
         aiUsageHelper.validateFilter(filter);
 
+        aiUsageScopeHelper.applyScope(filter, currentUserService.getCurrentPrincipal());
+
         return aiUsageLogRepository.filterUsageLogs(filter, pageable)
 
                 .map(aiUsageLogMapper::toResponse);
@@ -77,8 +104,8 @@ public class AIUsageLogServiceImpl implements AIUsageLogService {
         LocalDateTime startOfLast7Days = LocalDate.now().minusDays(6).atStartOfDay();
 
 
-        List<AIUsageLog> todayLogs = aiUsageLogRepository.filterUsageLogs(aiUsageHelper.fromDateFilter(startOfToday));
-        List<AIUsageLog> last7DayLogs = aiUsageLogRepository.filterUsageLogs(aiUsageHelper.fromDateFilter(startOfLast7Days));
+        List<AIUsageLog> todayLogs = aiUsageLogRepository.filterUsageLogs(scopedFromDateFilter(startOfToday));
+        List<AIUsageLog> last7DayLogs = aiUsageLogRepository.filterUsageLogs(scopedFromDateFilter(startOfLast7Days));
 
 
         return aiUsageLogMapper.toSummaryResponse(todayLogs, last7DayLogs);
@@ -91,8 +118,10 @@ public class AIUsageLogServiceImpl implements AIUsageLogService {
         LocalDate today = LocalDate.now();
         LocalDate start = today.minusDays(days - 1L);
 
+        AIUsageLogFilterRequest scope = scopedFromDateFilter(start.atStartOfDay());
+
         Map<LocalDate, AIUsageDailyProjection> byDay = aiUsageLogRepository
-                .findDailyStats(start.atStartOfDay())
+                .findDailyStats(start.atStartOfDay(), scope.getUserId(), scope.getDepartmentId())
                 .stream()
                 .collect(Collectors.toMap(AIUsageDailyProjection::getDay, Function.identity()));
 
@@ -106,5 +135,14 @@ public class AIUsageLogServiceImpl implements AIUsageLogService {
     @Override
     public List<String> getDistinctModels() {
         return aiUsageLogRepository.findDistinctModels();
+    }
+
+    private AIUsageLogFilterRequest scopedFromDateFilter(LocalDateTime from) {
+
+        AIUsageLogFilterRequest filter = aiUsageHelper.fromDateFilter(from);
+
+        aiUsageScopeHelper.applyScope(filter, currentUserService.getCurrentPrincipal());
+
+        return filter;
     }
 }

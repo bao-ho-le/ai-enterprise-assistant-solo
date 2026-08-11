@@ -1,7 +1,10 @@
 package com.enterprise.aiassistant.backend.folder.service;
 
+import com.enterprise.aiassistant.backend.auth.security.UserPrincipal;
+import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.FolderException;
+import com.enterprise.aiassistant.backend.document.service.DocumentAuthorizationService;
 import com.enterprise.aiassistant.backend.document.dto.response.DocumentListResponse;
 import com.enterprise.aiassistant.backend.document.entity.Document;
 import com.enterprise.aiassistant.backend.document.enums.DocumentStatus;
@@ -13,9 +16,12 @@ import com.enterprise.aiassistant.backend.folder.dto.response.FolderContentsResp
 import com.enterprise.aiassistant.backend.folder.dto.response.FolderResponse;
 import com.enterprise.aiassistant.backend.folder.entity.Folder;
 import com.enterprise.aiassistant.backend.folder.enums.FolderStatus;
+import com.enterprise.aiassistant.backend.folder.helper.FolderAuthorizationHelper;
 import com.enterprise.aiassistant.backend.folder.helper.FolderHelper;
 import com.enterprise.aiassistant.backend.folder.mapper.FolderMapper;
 import com.enterprise.aiassistant.backend.folder.repository.FolderRepository;
+import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -43,6 +49,12 @@ public class FolderServiceImpl implements FolderService {
     private final FolderMapper folderMapper;
 
     private final FolderHelper folderHelper;
+
+    private final FolderAuthorizationHelper folderAuthorizationHelper;
+
+    private final CurrentUserService currentUserService;
+
+    private final DocumentAuthorizationService documentAuthorizationService;
 
     @Override
     @Transactional
@@ -80,6 +92,8 @@ public class FolderServiceImpl implements FolderService {
 
         folderHelper.validateFolderStatus(folder);
 
+        folderAuthorizationHelper.requireRead(currentUserService.getCurrentPrincipal(), folder);
+
         return folder;
     }
 
@@ -95,9 +109,13 @@ public class FolderServiceImpl implements FolderService {
 
         folderHelper.validateFolderStatus(parent);
 
+        folderAuthorizationHelper.requireCreate(currentUserService.getCurrentPrincipal(), parent);
+
         folderHelper.validateNameNotDuplicated(request.getName(), parent);
 
-        Folder folder = folderMapper.toFolder(request, parent);
+        User owner = currentUserService.getCurrentUser();
+
+        Folder folder = folderMapper.toFolder(request, parent, owner, owner.getDepartment());
 
         folderRepository.save(folder);
 
@@ -116,6 +134,8 @@ public class FolderServiceImpl implements FolderService {
 
         folderHelper.validateFolderStatus(folder);
         folderHelper.validateNotRootFolder(folder);
+
+        folderAuthorizationHelper.requireUpdate(currentUserService.getCurrentPrincipal(), folder);
 
         folderHelper.validateNameNotDuplicated(request.getName(), folder.getParent(), folder.getId());
 
@@ -139,6 +159,8 @@ public class FolderServiceImpl implements FolderService {
         folderHelper.validateFolderStatus(folder);
         folderHelper.validateNotRootFolder(folder);
 
+        folderAuthorizationHelper.requireUpdate(currentUserService.getCurrentPrincipal(), folder);
+
         if (request.getTargetParentId().equals(folderId)) {
             throw new FolderException(ErrorCode.FOLDER_CANNOT_MOVE_INTO_ITSELF);
         }
@@ -147,6 +169,8 @@ public class FolderServiceImpl implements FolderService {
                 .orElseThrow(() -> new FolderException(ErrorCode.FOLDER_PARENT_NOT_FOUND));
 
         folderHelper.validateFolderStatus(targetParent);
+
+        folderAuthorizationHelper.requireCreate(currentUserService.getCurrentPrincipal(), targetParent);
 
         folderHelper.validateNotDescendant(folder, targetParent);
 
@@ -171,9 +195,11 @@ public class FolderServiceImpl implements FolderService {
         folderHelper.validateFolderStatus(folder);
         folderHelper.validateNotRootFolder(folder);
 
+        folderAuthorizationHelper.requireDelete(currentUserService.getCurrentPrincipal(), folder);
+
         // Xóa mềm (soft delete) toàn bộ cây: folder hiện tại + tất cả folder con + tất cả document bên trong,
         // giống hành vi "Move to trash" của Google Drive.
-        softDeleteRecursive(folder, LocalDateTime.now());
+        softDeleteRecursive(folder, LocalDateTime.now(), currentUserService.getCurrentUser());
     }
 
 
@@ -184,6 +210,8 @@ public class FolderServiceImpl implements FolderService {
 
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new FolderException(ErrorCode.FOLDER_NOT_FOUND));
+
+        folderAuthorizationHelper.requireRead(currentUserService.getCurrentPrincipal(), folder);
 
         return folderMapper.toFolderResponse(folder);
     }
@@ -198,10 +226,17 @@ public class FolderServiceImpl implements FolderService {
         // Folder con luôn trả về toàn bộ trong 1 lần gọi, không phân trang — chỉ
         // document mới dùng pageable (frontend tự cuộn để lấy thêm document).
         List<Folder> subfolders = folderRepository
-                .findByParentIdAndStatusOrderByNameAsc(currentFolder.getId(), FolderStatus.ACTIVE);
+                .findByParentIdAndStatusOrderByNameAsc(currentFolder.getId(), FolderStatus.ACTIVE)
+                .stream()
+                .filter(subfolder -> folderAuthorizationHelper.canRead(
+                        currentUserService.getCurrentPrincipal(), subfolder))
+                .toList();
 
-        Page<DocumentListResponse> documents =
-                folderRepository.getDocumentsInFolder(currentFolder.getId(), pageable);
+        Page<DocumentListResponse> documents = folderRepository.getDocumentsInFolder(
+                currentFolder.getId(),
+                documentAuthorizationService.currentAccessScope(),
+                pageable
+        );
 
         return FolderContentsResponse.builder()
                 .currentFolder(folderMapper.toFolderResponse(currentFolder))
@@ -225,6 +260,8 @@ public class FolderServiceImpl implements FolderService {
         if (folder.getStatus() != FolderStatus.DELETED) {
             throw new FolderException(ErrorCode.FOLDER_NOT_DELETED);
         }
+
+        folderAuthorizationHelper.requireDelete(currentUserService.getCurrentPrincipal(), folder);
 
         // Khôi phục tên nếu đang bị trùng với 1 folder khác đã được tạo/đổi tên
         // trong lúc folder này nằm trong thùng rác, để tránh vi phạm unique constraint.
@@ -251,6 +288,8 @@ public class FolderServiceImpl implements FolderService {
             throw new FolderException(ErrorCode.FOLDER_NOT_DELETED);
         }
 
+        folderAuthorizationHelper.requireDelete(currentUserService.getCurrentPrincipal(), folder);
+
         hardDeleteRecursive(folder);
     }
 
@@ -259,14 +298,14 @@ public class FolderServiceImpl implements FolderService {
     @Transactional(readOnly = true)
     public Page<FolderResponse> getDeletedFolders(String keyword, Pageable pageable) {
 
-        if (keyword == null || keyword.isBlank()) {
-            return folderRepository.findByStatusOrderByDeletedAtDesc(FolderStatus.DELETED, pageable)
-                    .map(folderMapper::toFolderResponse);
-        }
+        UserPrincipal principal = currentUserService.getCurrentPrincipal();
 
-        return folderRepository
-                .findByStatusAndNameContainingIgnoreCaseOrderByDeletedAtDesc(FolderStatus.DELETED, keyword.trim(), pageable)
-                .map(folderMapper::toFolderResponse);
+        return folderRepository.searchDeletedFoldersInScope(
+                (keyword == null || keyword.isBlank()) ? null : keyword.trim(),
+                isUnrestricted(principal),
+                principal.getDepartmentId(),
+                pageable
+        ).map(folderMapper::toFolderResponse);
     }
 
     @Override
@@ -277,12 +316,21 @@ public class FolderServiceImpl implements FolderService {
 
         String safeKeyword = keyword.trim();
 
-        return folderRepository
-                .findByNameContainingIgnoreCaseAndStatusOrderByNameAsc(safeKeyword, FolderStatus.ACTIVE, pageable)
-                .map(folderMapper::toFolderResponse);
+        UserPrincipal principal = currentUserService.getCurrentPrincipal();
+
+        return folderRepository.searchActiveFoldersInScope(
+                safeKeyword,
+                isUnrestricted(principal),
+                principal.getDepartmentId(),
+                pageable
+        ).map(folderMapper::toFolderResponse);
     }
 
     // Helper
+
+    private boolean isUnrestricted(UserPrincipal principal) {
+        return principal.getRole() == Role.ADMIN || principal.getRole() == Role.SUPERVISOR;
+    }
 
     // Dữ liệu tạo trước khi có bất biến "chỉ root mới không có cha": gắn lại vào root.
     private void backfillOrphanFolders(Folder rootFolder) {
@@ -332,6 +380,7 @@ public class FolderServiceImpl implements FolderService {
 
         folder.setStatus(FolderStatus.ACTIVE);
         folder.setDeletedAt(null);
+        folder.setDeletedBy(null);
         folder.setUpdatedAt(now);
         folderRepository.save(folder);
 
@@ -341,6 +390,7 @@ public class FolderServiceImpl implements FolderService {
         documents.forEach(document -> {
             document.setStatus(DocumentStatus.ACTIVE);
             document.setDeletedAt(null);
+            document.setDeletedBy(null);
         });
 
         documentRepository.saveAll(documents);
@@ -354,10 +404,11 @@ public class FolderServiceImpl implements FolderService {
         }
     }
 
-    private void softDeleteRecursive(Folder folder, LocalDateTime now) {
+    private void softDeleteRecursive(Folder folder, LocalDateTime now, User deletedBy) {
 
         folder.setStatus(FolderStatus.DELETED);
         folder.setDeletedAt(now);
+        folder.setDeletedBy(deletedBy);
         folderRepository.save(folder);
 
         List<Document> documents =
@@ -366,6 +417,7 @@ public class FolderServiceImpl implements FolderService {
         documents.forEach(document -> {
             document.setStatus(DocumentStatus.DELETED);
             document.setDeletedAt(now);
+            document.setDeletedBy(deletedBy);
         });
 
         documentRepository.saveAll(documents);
@@ -374,7 +426,7 @@ public class FolderServiceImpl implements FolderService {
                 folderRepository.findByParentIdAndStatusOrderByNameAsc(folder.getId(), FolderStatus.ACTIVE);
 
         for (Folder child : children) {
-            softDeleteRecursive(child, now);
+            softDeleteRecursive(child, now, deletedBy);
         }
     }
 

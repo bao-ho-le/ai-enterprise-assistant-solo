@@ -1,5 +1,6 @@
 package com.enterprise.aiassistant.backend.document.repository;
 
+import com.enterprise.aiassistant.backend.document.dto.DocumentAccessScope;
 import com.enterprise.aiassistant.backend.document.dto.request.DocumentFilterRequest;
 import com.enterprise.aiassistant.backend.document.dto.response.DocumentListResponse;
 import jakarta.persistence.EntityManager;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Repository
 public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
@@ -24,6 +26,7 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
     @Override
     public Page<DocumentListResponse> filterDocuments(
             DocumentFilterRequest filter,
+            DocumentAccessScope scope,
             Pageable pageable
     ) {
 
@@ -40,17 +43,28 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
                     v.status,
                     d.status,
                     d.folder.id,
-                    d.deletedAt
+                    d.deletedAt,
+                    owner.id,
+                    owner.fullName,
+                    dept.id,
+                    dept.name,
+                    deleter.fullName
                 )
 
                     FROM Document d
-                
+
                     JOIN d.currentVersion v
-                
+
                     JOIN v.file f
-                
+
+                    LEFT JOIN d.owner owner
+
+                    LEFT JOIN d.department dept
+
+                    LEFT JOIN d.deletedBy deleter
+
                     WHERE 1=1
-                
+
                 """);
 
 
@@ -58,6 +72,7 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
 
 
         appendFilters(jpql, params, filter);
+        appendAccessScope(jpql, params, scope);
 
 
         // =========================
@@ -84,30 +99,31 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
         return new PageImpl<>(
                 query.getResultList(),
                 pageable,
-                countDocuments(filter)
+                countDocuments(filter, scope)
         );
     }
 
 
-    private long countDocuments(DocumentFilterRequest filter) {
+    private long countDocuments(DocumentFilterRequest filter, DocumentAccessScope scope) {
 
         StringBuilder jpql = new StringBuilder("""
-                
+
                 SELECT COUNT(d)
-                
+
                 FROM Document d
-                
+
                 JOIN d.currentVersion v
-                
+
                 JOIN v.file f
-                
+
                 WHERE 1=1
-                
+
                 """);
 
 
         Map<String, Object> params = new HashMap<>();
         appendFilters(jpql, params, filter);
+        appendAccessScope(jpql, params, scope);
 
         TypedQuery<Long> query =
                 entityManager.createQuery(jpql.toString(), Long.class);
@@ -116,6 +132,41 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
 
 
         return query.getSingleResult();
+    }
+
+
+    // ABAC đẩy thẳng xuống SQL: owner của mình, cùng department, tài liệu dùng chung
+    // (chưa gắn department) hoặc được chia sẻ explicit.
+    // scope = null là lỗi lập trình, không phải "bỏ qua ABAC" — fail fast thay vì âm thầm
+    // trả về toàn bộ document. Chỉ scope.unrestricted() = true (Admin/Supervisor) mới bypass.
+    void appendAccessScope(
+            StringBuilder jpql,
+            Map<String, Object> params,
+            DocumentAccessScope scope
+    ) {
+
+        Objects.requireNonNull(scope, "DocumentAccessScope must not be null");
+
+        if (scope.unrestricted()) {
+            return;
+        }
+
+        jpql.append(" AND (d.department IS NULL");
+
+        jpql.append(" OR d.owner.id = :scopeUserId");
+        params.put("scopeUserId", scope.userId());
+
+        if (scope.departmentId() != null) {
+            jpql.append(" OR d.department.id = :scopeDepartmentId");
+            params.put("scopeDepartmentId", scope.departmentId());
+        }
+
+        if (scope.sharedDocumentIds() != null && !scope.sharedDocumentIds().isEmpty()) {
+            jpql.append(" OR d.id IN :scopeSharedDocumentIds");
+            params.put("scopeSharedDocumentIds", scope.sharedDocumentIds());
+        }
+
+        jpql.append(")");
     }
 
 
@@ -202,6 +253,23 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
 
             jpql.append(" AND d.status = :documentStatus");
             params.put("documentStatus", filter.getDocumentStatus());
+        }
+
+
+        // =========================
+        // Owner / Department (Admin)
+        // =========================
+
+        if (filter.getOwnerId() != null) {
+
+            jpql.append(" AND d.owner.id = :ownerId");
+            params.put("ownerId", filter.getOwnerId());
+        }
+
+        if (filter.getDepartmentId() != null) {
+
+            jpql.append(" AND d.department.id = :filterDepartmentId");
+            params.put("filterDepartmentId", filter.getDepartmentId());
         }
 
 

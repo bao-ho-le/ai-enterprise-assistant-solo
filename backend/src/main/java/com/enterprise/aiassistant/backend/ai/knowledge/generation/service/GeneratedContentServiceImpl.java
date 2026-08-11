@@ -9,7 +9,9 @@ import com.enterprise.aiassistant.backend.ai.knowledge.generation.enums.Generate
 import com.enterprise.aiassistant.backend.ai.knowledge.generation.helper.GeneratedHelper;
 import com.enterprise.aiassistant.backend.ai.knowledge.generation.mapper.GeneratedMapper;
 import com.enterprise.aiassistant.backend.ai.knowledge.generation.repository.GeneratedContentRepository;
+import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
+import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthorizationException;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.GeneratedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +26,7 @@ public class GeneratedContentServiceImpl implements GeneratedContentService {
     private final GeneratedContentRepository generatedContentRepository;
     private final GeneratedMapper generatedMapper;
     private final GeneratedHelper generatedHelper;
+    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional(readOnly = true)
@@ -31,22 +34,13 @@ public class GeneratedContentServiceImpl implements GeneratedContentService {
             GeneratedDocumentType generatedType,
             Pageable pageable
     ) {
-        Slice<GeneratedContent> generatedContents;
-
-        if (generatedType == null) {
-            generatedContents =
-                    generatedContentRepository
-                            .findAllByOrderByCreatedAtDesc(pageable);
-        } else {
-            generatedContents =
-                    generatedContentRepository
-                            .findByGeneratedTypeOrderByCreatedAtDesc(
-                                    generatedType,
-                                    pageable
-                            );
-        }
-
-        return generatedContents.map(generatedMapper::toGeneratedContentResponse);
+        return generatedContentRepository
+                .findOwnedByUser(
+                        currentUserService.getCurrentUserId(),
+                        generatedType,
+                        pageable
+                )
+                .map(generatedMapper::toGeneratedContentResponse);
     }
 
     @Override
@@ -79,8 +73,17 @@ public class GeneratedContentServiceImpl implements GeneratedContentService {
     // Helper
 
     private GeneratedContent getGeneratedContentOrThrow(Long generatedContentId) {
-        return generatedContentRepository.findById(generatedContentId)
+
+        GeneratedContent generatedContent = generatedContentRepository.findById(generatedContentId)
                 .orElseThrow(() -> new GeneratedException(ErrorCode.GENERATED_CONTENT_NOT_FOUND));
+
+        if (!generatedContentRepository.isOwnedByUser(
+                generatedContentId, currentUserService.getCurrentUserId())) {
+
+            throw new AuthorizationException(ErrorCode.ACCESS_DENIED);
+        }
+
+        return generatedContent;
     }
 }
 

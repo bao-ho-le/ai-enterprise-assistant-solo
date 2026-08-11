@@ -79,7 +79,7 @@ export default function EmailPreview({ from, to, subject, onSubjectChange, body,
               <Copy className="h-3.5 w-3.5" />
             </button>
           </div>
-          <p className="text-sm text-text-primary leading-relaxed whitespace-pre-wrap">{body}</p>
+          <p className="text-sm text-text-primary leading-relaxed whitespace-pre-wrap text-justify">{body}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 p-4 border-t border-border-subtle">

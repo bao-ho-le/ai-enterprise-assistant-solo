@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
         indexes = {
                 @Index(name = "idx_ai_usage_created_at", columnList = "created_at"),
                 @Index(name = "idx_ai_usage_conversation_type", columnList = "conversation_type"),
-                @Index(name = "idx_ai_usage_status", columnList = "status")
+                @Index(name = "idx_ai_usage_status", columnList = "status"),
+                @Index(name = "idx_ai_usage_user_id", columnList = "user_id"),
+                @Index(name = "idx_ai_usage_department_id", columnList = "department_id")
         }
 )
 @Getter
@@ -28,6 +30,16 @@ public class AIUsageLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // Chủ sở hữu request. Null chỉ khi log phát sinh từ tiến trình nền (embedding lúc xử lý
+    // document) chứ không phải từ request của user đã đăng nhập.
+    @Column(name = "user_id")
+    private Long userId;
+
+    // Snapshot department tại thời điểm gọi — thống kê theo phòng ban không bị đổi ngược
+    // khi admin chuyển user sang department khác.
+    @Column(name = "department_id")
+    private Long departmentId;
 
     @Column(name = "ai_conversation_id")
     private Long aiConversationId;

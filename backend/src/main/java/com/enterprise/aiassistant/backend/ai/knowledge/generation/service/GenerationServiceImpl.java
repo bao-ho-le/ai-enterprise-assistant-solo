@@ -1,5 +1,6 @@
 package com.enterprise.aiassistant.backend.ai.knowledge.generation.service;
 
+import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.dto.response.ConversationDocumentResponse;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.dto.response.GenerationConversationDetailResponse;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.entity.AIConversation;
@@ -43,6 +44,8 @@ import java.util.List;
 public class GenerationServiceImpl implements GenerationService {
 
     private final AIConversationRepository conversationRepository;
+
+    private final CurrentUserService currentUserService;
     private final AIConversationDocumentRepository conversationDocumentRepository;
     private final GenerationRepository generationRepository;
     private final GeneratedContentRepository generatedContentRepository;
@@ -69,6 +72,8 @@ public class GenerationServiceImpl implements GenerationService {
         AIConversation conversation = conversationRepository
                 .findByIdAndStatus(conversationId, ConversationStatus.ACTIVE)
                 .orElseThrow(() -> new AIConversationException(ErrorCode.CONVERSATION_NOT_FOUND));
+
+        aiConversationHelper.validateOwnership(conversation, currentUserService.getCurrentUserId());
 
         aiConversationHelper.validateGenerationConversationType(conversation.getConversationType());
 
@@ -154,6 +159,8 @@ public class GenerationServiceImpl implements GenerationService {
                 .orElseThrow(() -> new AIConversationException(ErrorCode.GENERATION_NOT_FOUND));
 
         AIConversation conversation = generation.getAiConversation();
+
+        aiConversationHelper.validateOwnership(conversation, currentUserService.getCurrentUserId());
 
         // Nếu conversation type là email thì không có attach document
         boolean isEmailGeneration = conversation.getConversationType() == ConversationType.EMAIL_GENERATION;

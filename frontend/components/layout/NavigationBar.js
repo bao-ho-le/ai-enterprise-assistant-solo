@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, Menu, User, LogOut } from "lucide-react";
+import { Sparkles, Menu, User, LogOut, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
+import { isAdmin } from "@/lib/permissions";
 import { getInitials } from "@/utils/format";
 
 const NAV_LINKS = [
@@ -49,7 +50,8 @@ export default function NavigationBar() {
   }, [accountOpen]);
 
   // Facebook-style login/register screens own their own header — no app nav there.
-  if (pathname === "/login" || pathname === "/register") return null;
+  // /admin has its own vertical sidebar shell (app/admin/layout.js) instead.
+  if (pathname === "/login" || pathname === "/register" || pathname.startsWith("/admin")) return null;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-bg-primary/80 backdrop-blur-xl">
@@ -124,6 +126,17 @@ export default function NavigationBar() {
                   <User className="h-4 w-4 text-text-muted" />
                   Profile
                 </Link>
+                {isAdmin(user) && (
+                  <Link
+                    href="/admin/dashboard"
+                    role="menuitem"
+                    onClick={() => setAccountOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-bg-elevated"
+                  >
+                    <ShieldCheck className="h-4 w-4 text-text-muted" />
+                    Admin
+                  </Link>
+                )}
                 <button
                   type="button"
                   role="menuitem"

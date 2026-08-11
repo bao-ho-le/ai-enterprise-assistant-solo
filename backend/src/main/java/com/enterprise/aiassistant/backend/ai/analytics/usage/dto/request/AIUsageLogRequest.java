@@ -17,6 +17,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class AIUsageLogRequest {
 
+    // Được AIUsageLogService tự điền từ SecurityContext, caller không cần truyền.
+    private Long userId;
+
+    private Long departmentId;
+
     // Optional: only set by callers running inside an AIConversation (generation/QA flows).
     private Long conversationId;
 

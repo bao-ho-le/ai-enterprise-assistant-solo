@@ -651,6 +651,181 @@ public enum ErrorCode {
     USER_NOT_FOUND(
             UNAUTHORIZED,
             "User not found."
+    ),
+
+    // Khác USER_NOT_FOUND ở chỗ đây là user bị thao tác (admin quản lý), không phải người đang đăng nhập,
+    // nên phải trả 404 chứ không phải 401 (401 sẽ khiến frontend tự đăng xuất).
+    TARGET_USER_NOT_FOUND(
+            NOT_FOUND,
+            "User not found"
+    ),
+
+    USER_ID_REQUIRED(
+            BAD_REQUEST,
+            "User id is required"
+    ),
+
+    USER_ID_INVALID(
+            BAD_REQUEST,
+            "User id is invalid"
+    ),
+
+    USER_REQUEST_REQUIRED(
+            BAD_REQUEST,
+            "User request is required"
+    ),
+
+    USERNAME_REQUIRED(
+            BAD_REQUEST,
+            "Username is required"
+    ),
+
+    USER_EMAIL_REQUIRED(
+            BAD_REQUEST,
+            "Email is required"
+    ),
+
+    USER_PASSWORD_REQUIRED(
+            BAD_REQUEST,
+            "Password is required"
+    ),
+
+    USER_PASSWORD_TOO_SHORT(
+            BAD_REQUEST,
+            "Password must be at least 8 characters"
+    ),
+
+    USER_FULL_NAME_REQUIRED(
+            BAD_REQUEST,
+            "Full name is required"
+    ),
+
+    USER_CANNOT_MODIFY_SELF(
+            BAD_REQUEST,
+            "Không thể tự thay đổi role/trạng thái của chính mình"
+    ),
+
+    // ===================== Authorization =====================
+    AUTHENTICATION_REQUIRED(
+            UNAUTHORIZED,
+            "Yêu cầu đăng nhập"
+    ),
+
+    ACCESS_DENIED(
+            FORBIDDEN,
+            "Bạn không có quyền truy cập tài nguyên này"
+    ),
+
+    PERMISSION_DENIED(
+            FORBIDDEN,
+            "Bạn không có quyền thực hiện thao tác này"
+    ),
+
+    ROLE_REQUIRED(
+            BAD_REQUEST,
+            "Role is required"
+    ),
+
+    PERMISSION_INVALID(
+            BAD_REQUEST,
+            "Permission is invalid"
+    ),
+
+    ROLE_PERMISSIONS_REQUIRED(
+            BAD_REQUEST,
+            "Danh sách permission là bắt buộc"
+    ),
+
+    ADMIN_ROLE_PERMISSIONS_IMMUTABLE(
+            BAD_REQUEST,
+            "Không thể thu hồi permission của role ADMIN"
+    ),
+
+    // ===================== Department =====================
+    DEPARTMENT_NOT_FOUND(
+            NOT_FOUND,
+            "Department not found"
+    ),
+
+    DEPARTMENT_ID_REQUIRED(
+            BAD_REQUEST,
+            "Department id is required"
+    ),
+
+    DEPARTMENT_ID_INVALID(
+            BAD_REQUEST,
+            "Department id is invalid"
+    ),
+
+    DEPARTMENT_REQUEST_REQUIRED(
+            BAD_REQUEST,
+            "Department request is required"
+    ),
+
+    DEPARTMENT_NAME_REQUIRED(
+            BAD_REQUEST,
+            "Department name is required"
+    ),
+
+    DEPARTMENT_NAME_TOO_LONG(
+            BAD_REQUEST,
+            "Department name exceeds maximum length"
+    ),
+
+    DEPARTMENT_DESCRIPTION_TOO_LONG(
+            BAD_REQUEST,
+            "Department description exceeds maximum length"
+    ),
+
+    DEPARTMENT_ALREADY_EXISTS(
+            CONFLICT,
+            "Department name already exists"
+    ),
+
+    DEPARTMENT_NOT_EMPTY(
+            CONFLICT,
+            "Department vẫn còn thành viên, không thể xoá"
+    ),
+
+    DEPARTMENT_MANAGER_NOT_MEMBER(
+            BAD_REQUEST,
+            "Manager phải là thành viên của department này"
+    ),
+
+    DEPARTMENT_MANAGER_ROLE_INVALID(
+            BAD_REQUEST,
+            "Chỉ user có role MANAGER hoặc ADMIN mới được gán làm manager"
+    ),
+
+    USER_HAS_NO_DEPARTMENT(
+            BAD_REQUEST,
+            "User chưa thuộc department nào"
+    ),
+
+    // ===================== Document Access / Sharing =====================
+    DOCUMENT_ACCESS_NOT_FOUND(
+            NOT_FOUND,
+            "Document access not found"
+    ),
+
+    DOCUMENT_ACCESS_ALREADY_GRANTED(
+            CONFLICT,
+            "Tài liệu đã được chia sẻ cho người dùng này"
+    ),
+
+    DOCUMENT_ACCESS_OWNER_CANNOT_BE_TARGET(
+            BAD_REQUEST,
+            "Không thể chia sẻ tài liệu cho chính chủ sở hữu"
+    ),
+
+    DOCUMENT_ACCESS_USER_REQUIRED(
+            BAD_REQUEST,
+            "Người nhận chia sẻ là bắt buộc"
+    ),
+
+    DOCUMENT_ACCESS_ID_REQUIRED(
+            BAD_REQUEST,
+            "Document access id is required"
     );
 
 

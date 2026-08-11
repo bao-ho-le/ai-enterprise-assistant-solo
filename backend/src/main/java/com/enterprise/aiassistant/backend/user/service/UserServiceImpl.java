@@ -5,18 +5,22 @@ import com.enterprise.aiassistant.backend.common.exception.business_exception.Us
 import com.enterprise.aiassistant.backend.user.dto.request.UpdateProfileRequest;
 import com.enterprise.aiassistant.backend.user.dto.response.UserResponse;
 import com.enterprise.aiassistant.backend.user.entity.User;
+import com.enterprise.aiassistant.backend.user.mapper.UserMapper;
 import com.enterprise.aiassistant.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+
+    private final RolePermissionService rolePermissionService;
+
+    private final UserMapper userMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -50,14 +54,11 @@ public class UserServiceImpl implements UserService {
         return toResponse(user);
     }
 
+    // /users/me trả kèm permissions để frontend ẩn/hiện UI theo quyền.
     private UserResponse toResponse(User user) {
-        return UserResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .fullName(user.getFullName())
-                .role(user.getRole().name())
-                .createdAt(user.getCreatedAt())
-                .build();
+        return userMapper.toResponse(
+                user,
+                rolePermissionService.getPermissions(user.getRole())
+        );
     }
 }

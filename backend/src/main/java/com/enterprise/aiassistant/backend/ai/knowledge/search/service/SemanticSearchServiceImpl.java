@@ -13,6 +13,7 @@ import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.service.
 import com.enterprise.aiassistant.backend.document.entity.Document;
 import com.enterprise.aiassistant.backend.document.enums.DocumentStatus;
 import com.enterprise.aiassistant.backend.document.repository.DocumentRepository;
+import com.enterprise.aiassistant.backend.document.service.DocumentAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,8 @@ public class SemanticSearchServiceImpl implements SemanticSearchService {
     private final SearchHelper searchHelper;
 
     private final SearchMapper searchMapper;
+
+    private final DocumentAuthorizationService documentAuthorizationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -84,15 +87,23 @@ public class SemanticSearchServiceImpl implements SemanticSearchService {
 
     // Helper
 
-    // Chỉ lấy các document không bị delete
+    // Chỉ lấy document còn ACTIVE và user hiện tại có quyền đọc — Qdrant không tự biết
+    // phân quyền nên phải lọc lại trước khi trả kết quả ra ngoài.
     private Map<Long, Document> fetchActiveDocuments(List<SearchResult> hits) {
 
         Set<Long> documentIds = hits.stream()
                 .map(hit -> hit.getPayload().getDocumentId())
                 .collect(Collectors.toSet());
 
-        return documentRepository.findAllById(documentIds).stream()
+        List<Document> activeDocuments = documentRepository.findAllById(documentIds).stream()
                 .filter(document -> document.getStatus() == DocumentStatus.ACTIVE)
+                .toList();
+
+        Set<Long> readableDocumentIds =
+                documentAuthorizationService.filterReadableDocumentIds(activeDocuments);
+
+        return activeDocuments.stream()
+                .filter(document -> readableDocumentIds.contains(document.getId()))
                 .collect(Collectors.toMap(Document::getId, Function.identity()));
     }
 

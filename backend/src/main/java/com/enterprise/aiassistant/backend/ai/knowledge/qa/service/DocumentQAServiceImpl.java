@@ -23,11 +23,14 @@ import com.enterprise.aiassistant.backend.ai.analytics.usage.service.AIUsageLogS
 import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.dto.SearchResult;
 import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.dto.VectorPayload;
 import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.service.VectorStoreService;
+import com.enterprise.aiassistant.backend.document.entity.Document;
 import com.enterprise.aiassistant.backend.document.repository.DocumentChunkRepository;
+import com.enterprise.aiassistant.backend.document.service.DocumentAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +53,7 @@ public class DocumentQAServiceImpl implements DocumentQAService {
     private final AIMessageMapper messageMapper;
     private final QAMapper qaMapper;
     private final AIConversationHelper aiConversationHelper;
+    private final DocumentAuthorizationService documentAuthorizationService;
 
     @Override
     public AIMessage answer(AIConversation conversation, String question) {
@@ -60,7 +64,16 @@ public class DocumentQAServiceImpl implements DocumentQAService {
         // Không build context / không gọi LLM nếu có tài liệu đính kèm đã bị soft-delete
         aiConversationHelper.validateAttachedDocumentsNotDeleted(attachedDocuments);
 
+        // Quyền có thể bị thu hồi sau khi attach — lọc lại ngay trước khi build context cho LLM.
+        Set<Long> readableDocumentIds = documentAuthorizationService.filterReadableDocumentIds(
+                attachedDocuments.stream()
+                        .map(link -> link.getDocumentVersion().getDocument())
+                        .filter(java.util.Objects::nonNull)
+                        .toList()
+        );
+
         List<Long> attachedVersionIds = attachedDocuments.stream()
+                .filter(link -> isReadable(link.getDocumentVersion().getDocument(), readableDocumentIds))
                 .map(link -> link.getDocumentVersion().getId())
                 .toList();
 
@@ -140,6 +153,10 @@ public class DocumentQAServiceImpl implements DocumentQAService {
 
 
     // Helper
+
+    private boolean isReadable(Document document, Set<Long> readableDocumentIds) {
+        return document != null && readableDocumentIds.contains(document.getId());
+    }
 
     // Chỉ lấy tối đa 5 chunks có độ liên quan cao nhất (CHAT_TOP_K)
     private List<SearchResult> retrieveRelevantChunks(String question, List<Long> attachedVersionIds) {

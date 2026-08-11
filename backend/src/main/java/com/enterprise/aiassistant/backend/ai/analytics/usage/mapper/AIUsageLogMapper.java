@@ -23,6 +23,8 @@ public class AIUsageLogMapper {
     public AIUsageLog toEntity(AIUsageLogRequest request) {
 
         return AIUsageLog.builder()
+                .userId(request.getUserId())
+                .departmentId(request.getDepartmentId())
                 .aiConversationId(request.getConversationId())
                 .aiMessageId(request.getMessageId())
                 .generationId(request.getGenerationId())
@@ -43,6 +45,8 @@ public class AIUsageLogMapper {
 
     public AIUsageLogResponse toResponse(AIUsageLog entity) {
         return AIUsageLogResponse.builder()
+                .userId(entity.getUserId())
+                .departmentId(entity.getDepartmentId())
                 .createdAt(entity.getCreatedAt())
                 .conversationType(entity.getConversationType())
                 .model(entity.getModel())

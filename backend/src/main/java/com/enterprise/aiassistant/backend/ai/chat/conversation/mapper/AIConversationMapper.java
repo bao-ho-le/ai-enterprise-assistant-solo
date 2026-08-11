@@ -9,6 +9,7 @@ import com.enterprise.aiassistant.backend.ai.knowledge.generation.entity.Generat
 import com.enterprise.aiassistant.backend.ai.chat.message.dto.response.AIMessageResponse;
 import com.enterprise.aiassistant.backend.ai.chat.message.dto.response.MessageResponse;
 import com.enterprise.aiassistant.backend.document.entity.DocumentVersion;
+import com.enterprise.aiassistant.backend.user.entity.User;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -103,11 +104,12 @@ public class AIConversationMapper {
                 .build();
     }
 
-    public AIConversation toEntity(CreateConversationRequest request) {
+    public AIConversation toEntity(CreateConversationRequest request, User owner) {
 
         return AIConversation.builder()
                 .title(request.getTitle())
                 .conversationType(request.getConversationType())
+                .user(owner)
                 .build();
     }
 

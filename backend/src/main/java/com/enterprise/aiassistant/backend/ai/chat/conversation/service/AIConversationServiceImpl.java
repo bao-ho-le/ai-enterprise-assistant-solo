@@ -1,5 +1,11 @@
 package com.enterprise.aiassistant.backend.ai.chat.conversation.service;
 
+import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthorizationException;
+import com.enterprise.aiassistant.backend.document.entity.Document;
+import com.enterprise.aiassistant.backend.document.service.DocumentAuthorizationService;
+import java.util.Set;
+import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
+import com.enterprise.aiassistant.backend.user.entity.Permission;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.dto.request.*;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.dto.response.*;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.entity.AIConversation;
@@ -49,7 +55,11 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AIConversationServiceImpl implements AIConversationService {
 
+    private final CurrentUserService currentUserService;
+
     private final AIConversationRepository conversationRepository;
+
+    private final DocumentAuthorizationService documentAuthorizationService;
 
     private final AIConversationDocumentRepository conversationDocumentRepository;
 
@@ -84,7 +94,12 @@ public class AIConversationServiceImpl implements AIConversationService {
 
         aiConversationHelper.validateCreateConversationRequest(request);
 
-        AIConversation conversation = aiConversationMapper.toEntity(request);
+        currentUserService.requirePermission(Permission.CONVERSATION_CREATE);
+
+        AIConversation conversation = aiConversationMapper.toEntity(
+                request,
+                currentUserService.getCurrentUser()
+        );
         conversationRepository.save(conversation);
 
         return aiConversationMapper.toResponse(conversation);
@@ -150,8 +165,9 @@ public class AIConversationServiceImpl implements AIConversationService {
 
         aiConversationHelper.validateRenameRequest(conversationId, request);
 
-        AIConversation conversation = conversationRepository.findByIdAndStatus(conversationId, ConversationStatus.ACTIVE)
-                .orElseThrow(() -> new AIConversationException(ErrorCode.CONVERSATION_NOT_FOUND));
+        currentUserService.requirePermission(Permission.CONVERSATION_UPDATE);
+
+        AIConversation conversation = getOwnedConversationOrThrow(conversationId, ConversationStatus.ACTIVE);
 
         conversation.setTitle(request.getTitle());
         conversationRepository.save(conversation);
@@ -166,8 +182,9 @@ public class AIConversationServiceImpl implements AIConversationService {
 
         aiConversationHelper.validateConversationId(conversationId);
 
-        AIConversation conversation = conversationRepository.findByIdAndStatus(conversationId, ConversationStatus.ACTIVE)
-                .orElseThrow(() -> new AIConversationException(ErrorCode.CONVERSATION_NOT_FOUND));
+        currentUserService.requirePermission(Permission.CONVERSATION_DELETE);
+
+        AIConversation conversation = getOwnedConversationOrThrow(conversationId, ConversationStatus.ACTIVE);
 
         conversation.setStatus(ConversationStatus.DELETED);
         conversation.setDeletedAt(LocalDateTime.now());
@@ -184,6 +201,8 @@ public class AIConversationServiceImpl implements AIConversationService {
         // conversation (404) vs one that exists but isn't soft-deleted (400).
         AIConversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new AIConversationException(ErrorCode.CONVERSATION_NOT_FOUND));
+
+        aiConversationHelper.validateOwnership(conversation, currentUserService.getCurrentUserId());
 
         if (conversation.getStatus() != ConversationStatus.DELETED) {
             throw new AIConversationException(ErrorCode.CONVERSATION_NOT_DELETED);
@@ -204,9 +223,13 @@ public class AIConversationServiceImpl implements AIConversationService {
 
         aiConversationHelper.validateConversationId(conversationId);
 
+        currentUserService.requirePermission(Permission.CONVERSATION_DELETE);
+
         // Hard delete must reach conversations already soft-deleted too, so no status filter here.
         AIConversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new AIConversationException(ErrorCode.CONVERSATION_NOT_FOUND));
+
+        aiConversationHelper.validateOwnership(conversation, currentUserService.getCurrentUserId());
 
         // GeneratedContent no longer has its own ai_conversation_id (item 4) - collect its
         // ids through the conversation's Generations before those rows are deleted.
@@ -236,8 +259,7 @@ public class AIConversationServiceImpl implements AIConversationService {
         aiConversationHelper.validateAttachRequest(conversationId, request);
 
         // Find active conversation
-        AIConversation conversation = conversationRepository.findByIdAndStatus(conversationId, ConversationStatus.ACTIVE)
-                .orElseThrow(() -> new AIConversationException(ErrorCode.CONVERSATION_NOT_FOUND));
+        AIConversation conversation = getOwnedConversationOrThrow(conversationId, ConversationStatus.ACTIVE);
 
         // Remove duplicate document IDs
         List<Long> documentVersionIds = request.getDocumentVersionIds().stream().distinct().toList();
@@ -252,6 +274,9 @@ public class AIConversationServiceImpl implements AIConversationService {
 
         // Chặn attach document đã bị soft-delete
         aiConversationHelper.validateVersionsNotDeleted(versions);
+
+        // Không cho kéo tài liệu ngoài quyền đọc vào context của AI.
+        requireReadableDocumentVersions(versions);
 
         // Get already attached documents
         List<Long> alreadyAttachedIds =
@@ -300,8 +325,7 @@ public class AIConversationServiceImpl implements AIConversationService {
         aiConversationHelper.validateConversationId(conversationId);
         aiConversationHelper.validateRecentMessagesLimit(recentMessagesLimit);
 
-        AIConversation conversation = conversationRepository.findByIdAndStatus(conversationId, ConversationStatus.ACTIVE)
-                .orElseThrow(() -> new AIConversationException(ErrorCode.CONVERSATION_NOT_FOUND));
+        AIConversation conversation = getOwnedConversationOrThrow(conversationId, ConversationStatus.ACTIVE);
 
         List<ConversationDocumentResponse> attachedDocuments = getConversationDocuments(conversationId);
         boolean hasDeletedAttachedDocuments = hasDeletedAttachedDocuments(conversationId);
@@ -331,7 +355,12 @@ public class AIConversationServiceImpl implements AIConversationService {
     ) {
         ConversationStatus status = filter.getStatus() != null ? filter.getStatus() : ConversationStatus.ACTIVE;
 
-        return conversationRepository.filterConversations(filter.getConversationType(), status, pageable);
+        return conversationRepository.filterConversations(
+                filter.getConversationType(),
+                status,
+                currentUserService.getCurrentUserId(),
+                pageable
+        );
     }
 
     @Override
@@ -340,7 +369,11 @@ public class AIConversationServiceImpl implements AIConversationService {
             ConversationFilterRequest filter,
             Pageable pageable
     ) {
-        return conversationRepository.filterDeletedConversations(filter.getConversationType(), pageable);
+        return conversationRepository.filterDeletedConversations(
+                filter.getConversationType(),
+                currentUserService.getCurrentUserId(),
+                pageable
+        );
     }
 
     @Override
@@ -349,8 +382,7 @@ public class AIConversationServiceImpl implements AIConversationService {
 
         aiConversationHelper.validateConversationId(conversationId);
 
-        AIConversation conversation = conversationRepository.findByIdAndStatus(conversationId, ConversationStatus.ACTIVE)
-                .orElseThrow(() -> new AIConversationException(ErrorCode.CONVERSATION_NOT_FOUND));
+        AIConversation conversation = getOwnedConversationOrThrow(conversationId, ConversationStatus.ACTIVE);
 
         aiConversationHelper.validateGenerationConversationType(conversation.getConversationType());
 
@@ -402,10 +434,38 @@ public class AIConversationServiceImpl implements AIConversationService {
 
     // Helper
 
+    // Mọi đường vào conversation đều đi qua đây nên ownership check đặt ở một chỗ duy nhất.
     private void getActiveConversationOrThrow(Long conversationId) {
-        conversationRepository.findByIdAndStatus(conversationId, ConversationStatus.ACTIVE)
+        getOwnedConversationOrThrow(conversationId, ConversationStatus.ACTIVE);
+    }
+
+    private AIConversation getOwnedConversationOrThrow(Long conversationId, ConversationStatus status) {
+
+        AIConversation conversation = conversationRepository.findByIdAndStatus(conversationId, status)
                 .orElseThrow(() -> new ConversationException(ErrorCode.CONVERSATION_NOT_FOUND));
 
+        aiConversationHelper.validateOwnership(conversation, currentUserService.getCurrentUserId());
+
+        return conversation;
+    }
+
+    // AI chỉ được đọc tài liệu mà chính user có quyền đọc — chặn ngay từ bước attach.
+    private void requireReadableDocumentVersions(List<DocumentVersion> versions) {
+
+        List<Document> documents = versions.stream()
+                .map(DocumentVersion::getDocument)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
+        Set<Long> readableDocumentIds =
+                documentAuthorizationService.filterReadableDocumentIds(documents);
+
+        boolean allReadable = documents.stream()
+                .allMatch(document -> readableDocumentIds.contains(document.getId()));
+
+        if (!allReadable) {
+            throw new AuthorizationException(ErrorCode.ACCESS_DENIED);
+        }
     }
 
     private boolean hasDeletedAttachedDocuments(Long conversationId) {

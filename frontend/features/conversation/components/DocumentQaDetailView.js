@@ -306,7 +306,11 @@ export default function DocumentQaDetailView({ conversationId }) {
                           : ""
                       }
                     >
-                      <p className="text-sm text-text-primary leading-relaxed whitespace-pre-wrap text-left">
+                      <p
+                        className={`text-sm text-text-primary leading-relaxed whitespace-pre-wrap ${
+                          isUser ? "text-left" : "text-justify"
+                        }`}
+                      >
                         {isUser ? m.content : renderContentWithCitations(m.content)}
                       </p>
                     </div>

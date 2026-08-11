@@ -39,4 +39,9 @@ public class DocumentFilterRequest {
     // Document.status (ACTIVE/DELETED — "Status" filter)
     private DocumentStatus documentStatus;
 
+    // Chỉ Admin dùng (qua /admin/documents) — user thường bị giới hạn bởi DocumentAccessScope.
+    private Long ownerId;
+
+    private Long departmentId;
+
 }

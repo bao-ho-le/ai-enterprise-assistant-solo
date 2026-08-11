@@ -5,6 +5,7 @@ import com.enterprise.aiassistant.backend.ai.chat.conversation.enums.Conversatio
 
 
 import com.enterprise.aiassistant.backend.ai.analytics.usage.enums.ConversationType;
+import com.enterprise.aiassistant.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -18,7 +19,8 @@ import java.time.LocalDateTime;
         indexes = {
                 @Index(name = "idx_ai_conversation_type", columnList = "conversation_type"),
                 @Index(name = "idx_ai_conversation_status", columnList = "status"),
-                @Index(name = "idx_ai_conversation_created_at", columnList = "created_at")
+                @Index(name = "idx_ai_conversation_created_at", columnList = "created_at"),
+                @Index(name = "idx_ai_conversation_user_id", columnList = "user_id")
         }
 )
 @Getter
@@ -34,6 +36,12 @@ public class AIConversation {
 
     @Column(nullable = false)
     private String title;
+
+    // Chủ sở hữu conversation. Nullable ở tầng schema vì dữ liệu cũ, nhưng conversation
+    // mới luôn có user và mọi thao tác đều bị chặn nếu không phải chủ sở hữu.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "conversation_type", length = 50)

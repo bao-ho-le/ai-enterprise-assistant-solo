@@ -131,5 +131,15 @@ public class AIUsageLogRepositoryCustomImpl implements AIUsageLogRepositoryCusto
             jpql.append(" AND u.status = :status");
             params.put("status", filter.getStatus());
         }
+
+        if (filter.getUserId() != null) {
+            jpql.append(" AND u.userId = :userId");
+            params.put("userId", filter.getUserId());
+        }
+
+        if (filter.getDepartmentId() != null) {
+            jpql.append(" AND u.departmentId = :departmentId");
+            params.put("departmentId", filter.getDepartmentId());
+        }
     }
 }
