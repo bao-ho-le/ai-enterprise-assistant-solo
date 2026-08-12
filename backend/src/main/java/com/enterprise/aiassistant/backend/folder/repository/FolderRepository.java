@@ -42,19 +42,18 @@ public interface FolderRepository extends JpaRepository<Folder, Long>,
 
     boolean existsByNameAndParentAndStatusAndIdNot(String name, Folder parent, FolderStatus status, Long id);
 
-    // Scope ABAC đẩy thẳng xuống query: unrestricted (ADMIN/SUPERVISOR) thấy tất cả,
-    // còn lại chỉ thấy folder dùng chung hoặc folder của department mình.
+    // Trash là không gian riêng của từng user: chỉ thấy folder do chính mình xoá,
+    // bất kể role — không dùng scope ABAC unrestricted/department như các query khác.
     @Query("""
             SELECT f FROM Folder f
             WHERE f.status = com.enterprise.aiassistant.backend.folder.enums.FolderStatus.DELETED
+              AND f.owner.id = :ownerId
               AND (CAST(:keyword AS string) IS NULL OR LOWER(f.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')))
-              AND (:unrestricted = TRUE OR f.department IS NULL OR f.department.id = :departmentId)
             ORDER BY f.deletedAt DESC
             """)
-    Page<Folder> searchDeletedFoldersInScope(
+    Page<Folder> searchDeletedFoldersOwnedBy(
+            @Param("ownerId") Long ownerId,
             @Param("keyword") String keyword,
-            @Param("unrestricted") boolean unrestricted,
-            @Param("departmentId") Long departmentId,
             Pageable pageable
     );
 

@@ -301,10 +301,9 @@ public class FolderServiceImpl implements FolderService {
 
         currentUserService.requirePermission(Permission.FOLDER_READ);
 
-        return folderRepository.searchDeletedFoldersInScope(
+        return folderRepository.searchDeletedFoldersOwnedBy(
+                principal.getId(),
                 (keyword == null || keyword.isBlank()) ? null : keyword.trim(),
-                isUnrestricted(principal),
-                principal.getDepartmentId(),
                 pageable
         ).map(folderMapper::toFolderResponse);
     }
