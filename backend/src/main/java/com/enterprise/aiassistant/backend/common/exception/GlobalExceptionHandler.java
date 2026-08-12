@@ -6,6 +6,10 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -43,6 +47,45 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(errorCode.getStatus())
                 .body(response);
+    }
+
+    // Sai tên đăng nhập / mật khẩu — CustomAuthenticationProvider ném BadCredentialsException
+    // (và DisabledException, LockedException, CredentialsExpiredException, đều kế thừa
+    // AuthenticationException). Trước đây các exception này rơi vào handler Exception.class
+    // chung nên trả 500 "Something went wrong" kèm stack trace đầy đủ trong log.
+    // Giờ trả 401 với message rõ ràng; không log cả stack trace vì đây là lỗi người dùng nhập sai.
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponseDto> handleAuthenticationException(
+            AuthenticationException exception,
+            HttpServletRequest request
+    ) {
+
+        log.warn("Authentication failed: {}", exception.getMessage());
+
+        // Message riêng theo loại lỗi: tài khoản bị disable/locked/expired cần thông báo
+        // rõ ràng chứ không phải "Invalid username or password." gây hiểu nhầm là sai mật khẩu.
+        String errorCode = "INVALID_CREDENTIALS";
+        String message = "Invalid username or password.";
+        if (exception instanceof DisabledException) {
+            errorCode = "ACCOUNT_DISABLED";
+            message = "Your account has been disabled. Please contact your administrator.";
+        } else if (exception instanceof LockedException) {
+            errorCode = "ACCOUNT_LOCKED";
+            message = "Your account has been locked. Please contact your administrator.";
+        } else if (exception instanceof CredentialsExpiredException) {
+            errorCode = "CREDENTIALS_EXPIRED";
+            message = "Your credentials have expired. Please contact your administrator.";
+        }
+
+        ErrorResponseDto response = ErrorResponseDto.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error(errorCode)
+                .message(message)
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     // @Valid @RequestBody (vd: CreateFolderRequest, RenameFolderRequest, SendMessageRequest...)

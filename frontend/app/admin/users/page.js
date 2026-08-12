@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Search, Trash2 } from "lucide-react";
+import { Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import Toast from "@/components/ui/Toast";
 import AdminTableState from "@/features/admin/components/AdminTableState";
@@ -13,7 +13,6 @@ import {
   assignAdminUserRole,
   changeAdminUserDepartment,
   createAdminUser,
-  deleteAdminUser,
   getAdminDepartments,
   getAdminUsers,
   setAdminUserEnabled,
@@ -52,12 +51,11 @@ export default function AdminUsersPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState(null);
+  const [pendingToggle, setPendingToggle] = useState(null);
 
   const canCreate = hasPermission(currentUser, "USER_CREATE");
   const canAssignRole = hasPermission(currentUser, "USER_ASSIGN_ROLE");
   const canChangeDepartment = hasPermission(currentUser, "USER_CHANGE_DEPARTMENT");
-  const canDelete = hasPermission(currentUser, "USER_DELETE");
   const canToggle =
     hasPermission(currentUser, "USER_ENABLE") || hasPermission(currentUser, "USER_DISABLE");
 
@@ -300,37 +298,26 @@ export default function AdminUsersPage() {
                     )}
                   </td>
                   <td className="px-4 py-1">
-                    {canToggle && u.id !== currentUser?.id ? (
-                      <button
-                        type="button"
-                        className={`badge ${u.enabled ? "badge-success" : "badge-error"}`}
-                        onClick={() =>
-                          run(
-                            () => setAdminUserEnabled(u.id, !u.enabled),
-                            u.enabled ? "Đã khoá user" : "Đã mở khoá user"
-                          )
-                        }
-                      >
-                        {u.enabled ? "ACTIVE" : "DISABLED"}
-                      </button>
-                    ) : (
-                      <span className={`badge ${u.enabled ? "badge-success" : "badge-error"}`}>
-                        {u.enabled ? "ACTIVE" : "DISABLED"}
-                      </span>
-                    )}
+                    <span className={`badge ${u.enabled ? "badge-success" : "badge-error"}`}>
+                      {u.enabled ? "ACTIVE" : "DISABLED"}
+                    </span>
                   </td>
                   <td className="whitespace-nowrap px-4 py-1 text-xs text-text-secondary">
                     {formatDateTime(u.createdAt)}
                   </td>
                   <td className="px-4 py-1 text-right">
-                    {canDelete && u.id !== currentUser?.id && (
+                    {canToggle && u.id !== currentUser?.id && (
                       <button
                         type="button"
                         className="btn-ghost p-1.5"
-                        aria-label={`Delete ${u.fullName}`}
-                        onClick={() => setPendingDelete(u)}
+                        aria-label={`${u.enabled ? "Soft delete" : "Restore"} ${u.fullName}`}
+                        onClick={() => setPendingToggle(u)}
                       >
-                        <Trash2 className="h-4 w-4 text-error" />
+                        {u.enabled ? (
+                          <Trash2 className="h-4 w-4 text-error" />
+                        ) : (
+                          <RotateCcw className="h-4 w-4 text-accent" />
+                        )}
                       </button>
                     )}
                   </td>
@@ -416,15 +403,22 @@ export default function AdminUsersPage() {
       </Modal>
 
       <ConfirmDialog
-        open={Boolean(pendingDelete)}
-        title="Xoá user"
-        message={`Xoá vĩnh viễn user "${pendingDelete?.fullName}"? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xoá"
-        onClose={() => setPendingDelete(null)}
+        open={Boolean(pendingToggle)}
+        title={pendingToggle?.enabled ? "Xoá mềm user" : "Khôi phục user"}
+        message={
+          pendingToggle?.enabled
+            ? `Xoá mềm user "${pendingToggle.fullName}"? Tài khoản sẽ bị khoá và không thể đăng nhập.`
+            : `Khôi phục user "${pendingToggle?.fullName}"? Tài khoản sẽ hoạt động trở lại.`
+        }
+        confirmLabel={pendingToggle?.enabled ? "Xoá mềm" : "Khôi phục"}
+        onClose={() => setPendingToggle(null)}
         onConfirm={async () => {
-          const target = pendingDelete;
-          setPendingDelete(null);
-          await run(() => deleteAdminUser(target.id), "Đã xoá user");
+          const target = pendingToggle;
+          setPendingToggle(null);
+          await run(
+            () => setAdminUserEnabled(target.id, !target.enabled),
+            target.enabled ? "Đã xoá mềm user" : "Đã khôi phục user"
+          );
         }}
       />
 

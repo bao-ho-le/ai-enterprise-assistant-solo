@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Plus, Search, Trash2, UserMinus } from "lucide-react";
+import { Pencil, Plus, Search, UserMinus } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import Toast from "@/components/ui/Toast";
 import AdminTableState from "@/features/admin/components/AdminTableState";
@@ -13,7 +13,6 @@ import {
   addAdminDepartmentMembers,
   assignAdminDepartmentManager,
   createAdminDepartment,
-  deleteAdminDepartment,
   getAdminDepartmentDetail,
   getAdminDepartments,
   getAdminUsers,
@@ -44,7 +43,6 @@ export default function AdminDepartmentsPage() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: "", description: "" });
   const [saving, setSaving] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState(null);
 
   const [candidates, setCandidates] = useState([]);
   const [memberToAdd, setMemberToAdd] = useState("");
@@ -53,7 +51,6 @@ export default function AdminDepartmentsPage() {
 
   const canCreate = hasPermission(currentUser, "DEPARTMENT_CREATE");
   const canUpdate = hasPermission(currentUser, "DEPARTMENT_UPDATE");
-  const canDelete = hasPermission(currentUser, "DEPARTMENT_DELETE");
   const canManageMembers = hasPermission(currentUser, "DEPARTMENT_MANAGE_MEMBERS");
 
   const load = useCallback(() => {
@@ -228,16 +225,6 @@ export default function AdminDepartmentsPage() {
                           }}
                         >
                           <Pencil className="h-4 w-4" />
-                        </button>
-                      )}
-                      {canDelete && (
-                        <button
-                          type="button"
-                          className="btn-ghost p-1.5"
-                          aria-label={`Delete ${d.name}`}
-                          onClick={() => setPendingDelete(d)}
-                        >
-                          <Trash2 className="h-4 w-4 text-error" />
                         </button>
                       )}
                     </td>
@@ -430,25 +417,6 @@ export default function AdminDepartmentsPage() {
           </div>
         </form>
       </Modal>
-
-      <ConfirmDialog
-        open={Boolean(pendingDelete)}
-        title="Xoá phòng ban"
-        message={`Xoá phòng ban "${pendingDelete?.name}"? Phòng ban phải không còn thành viên nào.`}
-        confirmLabel="Xoá"
-        onClose={() => setPendingDelete(null)}
-        onConfirm={async () => {
-          const target = pendingDelete;
-          setPendingDelete(null);
-          try {
-            await deleteAdminDepartment(target.departmentId);
-            setToast({ type: "success", text: "Đã xoá phòng ban" });
-            load();
-          } catch (e) {
-            setToast({ type: "error", text: e.message });
-          }
-        }}
-      />
 
       <ConfirmDialog
         open={Boolean(pendingAddMember)}
