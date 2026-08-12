@@ -4,6 +4,7 @@ import com.enterprise.aiassistant.backend.document.dto.request.DocumentBatchUplo
 import com.enterprise.aiassistant.backend.document.dto.request.DocumentFilterRequest;
 import com.enterprise.aiassistant.backend.document.dto.request.DocumentUpdateMetadataRequest;
 import com.enterprise.aiassistant.backend.document.dto.request.MoveDocumentRequest;
+import com.enterprise.aiassistant.backend.document.dto.request.ShareDocumentRequest;
 import com.enterprise.aiassistant.backend.document.dto.request.UploadNewVersionRequest;
 import com.enterprise.aiassistant.backend.document.dto.response.*;
 import com.enterprise.aiassistant.backend.document.mapper.DocumentMapper;
@@ -126,5 +127,30 @@ public class DocumentController {
     @GetMapping("/check-title")
     public boolean checkTitle(@RequestParam String title) {
         return documentService.existsByTitle(title);
+    }
+
+    // Chia sẻ document cho 1 user cụ thể — chỉ cấp quyền READ/DOWNLOAD cho người nhận.
+    @PostMapping("/{documentId}/shares")
+    public ResponseEntity<DocumentShareResponse> shareDocument(
+            @PathVariable Long documentId,
+            @RequestBody ShareDocumentRequest request
+    ) {
+        return ResponseEntity.ok(documentService.shareDocument(documentId, request));
+    }
+
+    @GetMapping("/{documentId}/shares")
+    public ResponseEntity<List<DocumentShareResponse>> getDocumentShares(
+            @PathVariable Long documentId
+    ) {
+        return ResponseEntity.ok(documentService.getDocumentShares(documentId));
+    }
+
+    @DeleteMapping("/{documentId}/shares/{targetUserId}")
+    public ResponseEntity<Void> revokeDocumentAccess(
+            @PathVariable Long documentId,
+            @PathVariable Long targetUserId
+    ) {
+        documentService.revokeDocumentAccess(documentId, targetUserId);
+        return ResponseEntity.noContent().build();
     }
 }

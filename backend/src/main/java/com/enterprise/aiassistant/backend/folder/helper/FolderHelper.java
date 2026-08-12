@@ -39,6 +39,8 @@ public class FolderHelper {
         if (parentFolderId == null) {
             throw new FolderException(ErrorCode.FOLDER_PARENT_REQUIRED);
         }
+
+
     }
 
     // Nhận diện root qua "không có cha" (bất biến của hệ thống) để khỏi phải truy vấn thêm.
@@ -77,6 +79,13 @@ public class FolderHelper {
     public void validateFolderStatus(Folder folder) {
         if (folder.getStatus() == FolderStatus.DELETED) {
             throw new FolderException(ErrorCode.FOLDER_DELETED);
+        }
+    }
+
+    // Ngăn không cho chọn chính folder đang move làm target parent của nó
+    public void validateNotMoveIntoSelf(Long folderId, Long targetParentId) {
+        if (targetParentId.equals(folderId)) {
+            throw new FolderException(ErrorCode.FOLDER_CANNOT_MOVE_INTO_ITSELF);
         }
     }
 

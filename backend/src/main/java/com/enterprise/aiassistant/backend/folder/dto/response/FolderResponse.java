@@ -28,4 +28,14 @@ public class FolderResponse {
 
     // Thời điểm xoá mềm (null nếu folder đang ACTIVE) — dùng cho màn Trash.
     private LocalDateTime deletedAt;
+
+    private Long ownerId;
+
+    private String ownerName;
+
+    private Long departmentId;
+
+    private String departmentName;
+
+    private String deletedByName;
 }

@@ -2,15 +2,14 @@ package com.enterprise.aiassistant.backend.auth.service;
 
 import com.enterprise.aiassistant.backend.auth.config.JwtProperties;
 import com.enterprise.aiassistant.backend.auth.dto.request.LoginRequest;
-import com.enterprise.aiassistant.backend.auth.dto.request.LogoutRequest;
-import com.enterprise.aiassistant.backend.auth.dto.request.RefreshTokenRequest;
 import com.enterprise.aiassistant.backend.auth.dto.request.RegisterRequest;
 import com.enterprise.aiassistant.backend.auth.dto.response.AuthResponse;
+import com.enterprise.aiassistant.backend.auth.dto.response.AuthResult;
 import com.enterprise.aiassistant.backend.auth.entity.RefreshToken;
 import com.enterprise.aiassistant.backend.auth.security.UserPrincipal;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthenticationException;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import com.enterprise.aiassistant.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public AuthResponse login(LoginRequest request) {
+    public AuthResult login(LoginRequest request) {
 
 
         Authentication authentication =
@@ -53,18 +52,18 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtService.generateAccessToken(userPrincipal);
         String refreshToken = refreshTokenService.createRefreshToken(userPrincipal);
 
-        return AuthResponse.builder()
+        AuthResponse body = AuthResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .accessTokenExpiresIn(3600)  // 1 hour
                 .refreshTokenExpiresIn(86400)  // 24 hours
                 .build();
+        return new AuthResult(body, refreshToken);
     }
 
     @Override
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public AuthResult register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUserName())) {
             throw new AuthenticationException(ErrorCode.USERNAME_ALREADY_EXISTS);
         }
@@ -78,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName())
                 .enabled(true)
-                .role(Role.USER)
+                .role(Role.EMPLOYEE)
                 .build();
 
         userRepository.save(user);
@@ -87,20 +86,20 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtService.generateAccessToken(UserPrincipal.from(user));
         String refreshToken = refreshTokenService.createRefreshToken(UserPrincipal.from(user));
 
-        return AuthResponse.builder()
+        AuthResponse body = AuthResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .accessTokenExpiresIn(jwtProperties.getAccessToken().getExpiration())
                 .refreshTokenExpiresIn(jwtProperties.getRefreshToken().getExpiration())
                 .build();
+        return new AuthResult(body, refreshToken);
     }
 
     @Override
     @Transactional
-    public AuthResponse refreshToken(RefreshTokenRequest request) {
+    public AuthResult refreshToken(String refreshToken) {
         RefreshToken storedToken = refreshTokenService
-                .findByToken(request.getRefreshToken())
+                .findByToken(refreshToken)
                 .orElseThrow(() -> new AuthenticationException(ErrorCode.INVALID_REFRESH_TOKEN));
 
         refreshTokenService.verifyExpiration(storedToken);
@@ -112,20 +111,20 @@ public class AuthServiceImpl implements AuthService {
         String newRefreshToken = refreshTokenService.createRefreshToken(UserPrincipal.from(user));
         String newAccessToken = jwtService.generateAccessToken(UserPrincipal.from(user));
 
-        return AuthResponse.builder()
+        AuthResponse body = AuthResponse.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
                 .tokenType("Bearer")
                 .accessTokenExpiresIn(jwtProperties.getAccessToken().getExpiration())
                 .refreshTokenExpiresIn(jwtProperties.getRefreshToken().getExpiration())
                 .build();
+        return new AuthResult(body, newRefreshToken);
     }
 
     @Override
     @Transactional
-    public void logout(LogoutRequest request) {
+    public void logout(String refreshToken) {
         RefreshToken storedToken = refreshTokenService
-                .findByToken(request.getRefreshToken())
+                .findByToken(refreshToken)
                 .orElseThrow(() -> new AuthenticationException(ErrorCode.INVALID_REFRESH_TOKEN));
 
         refreshTokenService.revokeToken(storedToken);

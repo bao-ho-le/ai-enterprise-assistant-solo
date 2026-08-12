@@ -1,0 +1,43 @@
+package com.enterprise.aiassistant.backend.ai.knowledge.generation.handler;
+
+import com.enterprise.aiassistant.backend.ai.chat.conversation.entity.AIConversation;
+import com.enterprise.aiassistant.backend.ai.knowledge.generation.dto.FormGenerationInput;
+import com.enterprise.aiassistant.backend.ai.knowledge.generation.dto.GenerationContext;
+import com.enterprise.aiassistant.backend.ai.knowledge.generation.enums.GeneratedType;
+import com.enterprise.aiassistant.backend.ai.knowledge.generation.helper.GenerationHelper;
+import com.enterprise.aiassistant.backend.ai.infrastructure.prompt.service.PromptBuilderService;
+import com.enterprise.aiassistant.backend.ai.analytics.usage.enums.ConversationType;
+import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
+import com.enterprise.aiassistant.backend.common.exception.business_exception.AIConversationException;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class FormGenerationHandler implements GenerationHandler {
+
+    private final GenerationHelper generationHelper;
+    private final PromptBuilderService promptBuilderService;
+
+    @Override
+    public boolean supports(ConversationType type) {
+        return type == ConversationType.FORM_GENERATION;
+    }
+
+    @Override
+    public GenerationContext handle(JsonNode inputData, AIConversation conversation) {
+
+        FormGenerationInput input = generationHelper.parseInput(inputData, FormGenerationInput.class);
+
+        if (input.getPurpose() == null || input.getPurpose().isBlank()) {
+            throw new AIConversationException(ErrorCode.FORM_GENERATION_PURPOSE_REQUIRED);
+        }
+
+        return GenerationContext.builder()
+                .prompt(promptBuilderService.buildFormPrompt(input))
+                .title(generationHelper.truncateTitle(input.getPurpose(), 120))
+                .generatedType(GeneratedType.FORM)
+                .build();
+    }
+}

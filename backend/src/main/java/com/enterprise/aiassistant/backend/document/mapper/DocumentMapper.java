@@ -1,12 +1,15 @@
 package com.enterprise.aiassistant.backend.document.mapper;
 
+import com.enterprise.aiassistant.backend.department.entity.Department;
 import com.enterprise.aiassistant.backend.document.dto.request.DocumentUploadRequest;
+import com.enterprise.aiassistant.backend.document.entity.DocumentAccess;
 import com.enterprise.aiassistant.backend.document.dto.response.*;
 import com.enterprise.aiassistant.backend.document.entity.Document;
 import com.enterprise.aiassistant.backend.document.entity.DocumentVersion;
 import com.enterprise.aiassistant.backend.document.helper.DocumentHelper;
 import com.enterprise.aiassistant.backend.folder.entity.Folder;
 import com.enterprise.aiassistant.backend.storage.entity.FileEntity;
+import com.enterprise.aiassistant.backend.user.entity.User;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -28,13 +31,52 @@ public class DocumentMapper {
                 .build();
     }
 
-    public Document toDocument(DocumentUploadRequest request, Folder folder) {
+    public Document toDocument(
+            DocumentUploadRequest request,
+            Folder folder,
+            User owner,
+            Department department
+    ) {
 
         return Document.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .documentType(request.getDocumentType())
                 .folder(folder)
+                .owner(owner)
+                .department(department)
+                .build();
+    }
+
+    public DocumentAccess toDocumentAccess(Document document, User targetUser, User grantedBy) {
+
+        return DocumentAccess.builder()
+                .document(document)
+                .user(targetUser)
+                .grantedBy(grantedBy)
+                .build();
+    }
+
+    public DocumentShareResponse toShareResponse(DocumentAccess access) {
+
+        Document document = access.getDocument();
+        User owner = document.getOwner();
+        Department department = document.getDepartment();
+        User sharedUser = access.getUser();
+
+        return DocumentShareResponse.builder()
+                .documentAccessId(access.getId())
+                .documentId(document.getId())
+                .documentTitle(document.getTitle())
+                .ownerId(owner != null ? owner.getId() : null)
+                .ownerName(owner != null ? owner.getFullName() : null)
+                .departmentId(department != null ? department.getId() : null)
+                .departmentName(department != null ? department.getName() : null)
+                .sharedUserId(sharedUser.getId())
+                .sharedUserName(sharedUser.getFullName())
+                .sharedUserEmail(sharedUser.getEmail())
+                .grantedByName(access.getGrantedBy() != null ? access.getGrantedBy().getFullName() : null)
+                .sharedAt(access.getCreatedAt())
                 .build();
     }
 
@@ -120,13 +162,16 @@ public class DocumentMapper {
     }
 
     public DocumentDetailResponse.DocumentInfo toDocumentInfo(Document document) {
+        User owner = document.getOwner();
         return new DocumentDetailResponse.DocumentInfo(
                 document.getTitle(),
                 document.getDescription(),
                 document.getStatus(),
                 document.getDocumentType(),
                 document.getCreatedAt(),
-                document.getUpdatedAt()
+                document.getUpdatedAt(),
+                owner != null ? owner.getId() : null,
+                owner != null ? owner.getFullName() : null
         );
     }
 

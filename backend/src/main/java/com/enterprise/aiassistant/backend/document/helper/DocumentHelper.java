@@ -7,6 +7,7 @@ import com.enterprise.aiassistant.backend.common.exception.business_exception.Fi
 import com.enterprise.aiassistant.backend.document.dto.request.DocumentFilterRequest;
 import com.enterprise.aiassistant.backend.document.dto.request.DocumentUpdateMetadataRequest;
 import com.enterprise.aiassistant.backend.document.dto.request.DocumentUploadRequest;
+import com.enterprise.aiassistant.backend.document.dto.request.ShareDocumentRequest;
 import com.enterprise.aiassistant.backend.document.dto.request.UploadNewVersionRequest;
 import com.enterprise.aiassistant.backend.document.entity.Document;
 import com.enterprise.aiassistant.backend.document.entity.DocumentVersion;
@@ -15,6 +16,7 @@ import com.enterprise.aiassistant.backend.document.mapper.DocumentMapper;
 import com.enterprise.aiassistant.backend.document.repository.DocumentVersionRepository;
 import com.enterprise.aiassistant.backend.storage.config.FileUploadProperties;
 import com.enterprise.aiassistant.backend.storage.entity.FileEntity;
+import com.enterprise.aiassistant.backend.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.InvalidMediaTypeException;
@@ -379,9 +381,36 @@ public class DocumentHelper {
             );
         }
     }
+
+    // ===================== Shared documents =====================
+
+    public void validateShareRequest(ShareDocumentRequest request) {
+
+        if (request == null) {
+            throw new DocumentException(ErrorCode.REQUEST_REQUIRED);
+        }
+
+        validateTargetUserId(request.getTargetUserId());
+    }
+
+    public void validateTargetUserId(Long targetUserId) {
+
+        if (targetUserId == null) {
+            throw new DocumentException(ErrorCode.DOCUMENT_ACCESS_USER_REQUIRED);
+        }
+
+        if (targetUserId <= 0) {
+            throw new DocumentException(ErrorCode.USER_ID_INVALID);
+        }
+    }
+
+    // Owner đã có toàn quyền sẵn, chia sẻ lại cho chính họ chỉ tạo bản ghi rác.
+    public void validateShareTarget(Document document, User targetUser) {
+
+        if (document.getOwner() != null
+                && document.getOwner().getId().equals(targetUser.getId())) {
+
+            throw new DocumentException(ErrorCode.DOCUMENT_ACCESS_OWNER_CANNOT_BE_TARGET);
+        }
+    }
 }
-
-
-
-
-

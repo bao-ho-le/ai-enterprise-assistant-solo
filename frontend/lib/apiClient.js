@@ -1,6 +1,8 @@
 // Thin fetch wrapper: base URL from env, ErrorResponseDto -> ApiError, JSON + raw (blob) support.
 // Every request in the app goes through here (via services/*), never fetch() in components.
 
+import { getAccessToken, setTokens, clearTokens } from "@/lib/auth";
+
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
 
@@ -36,13 +38,52 @@ async function toError(res) {
   return new ApiError(message, res.status, body);
 }
 
-async function request(path, { method = "GET", params, body, headers, signal } = {}) {
+// Single-flight refresh: concurrent 401s share one in-flight refresh call
+// instead of each firing their own. Bare fetch (not apiClient) to avoid
+// importing authService, which itself imports apiClient. No body/token to
+// send — the refresh token travels as an httpOnly cookie the browser attaches
+// automatically via credentials: "include".
+let refreshPromise = null;
+
+function refreshAccessToken() {
+  if (!refreshPromise) {
+    refreshPromise = fetch(`${BASE_URL}/auth/refresh-token`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then(async (res) => {
+        if (!res.ok) throw await toError(res);
+        return res.json();
+      })
+      .then(setTokens)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
+async function request(path, { method = "GET", params, body, headers, signal, _retried } = {}) {
+  const token = getAccessToken();
   const res = await fetch(`${BASE_URL}${path}${buildQuery(params)}`, {
     method,
     body,
-    headers,
+    headers: token ? { ...headers, Authorization: `Bearer ${token}` } : headers,
     signal,
+    credentials: "include",
   });
+  if (res.status === 401 && !path.startsWith("/auth/")) {
+    if (!_retried) {
+      try {
+        await refreshAccessToken();
+        return request(path, { method, params, body, headers, signal, _retried: true });
+      } catch {
+        // refresh token invalid/expired — fall through to real logout
+      }
+    }
+    clearTokens();
+    if (typeof window !== "undefined") window.location.href = "/login";
+  }
   if (!res.ok) throw await toError(res);
   return res;
 }

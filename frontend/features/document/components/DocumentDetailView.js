@@ -19,6 +19,7 @@ import Toast from "@/components/ui/Toast";
 import { documentTypeLabel, versionStatusBadge, documentStatusBadge } from "@/constants/document";
 import { formatBytes, formatDateTimeSlash, formatDateShort } from "@/utils/format";
 import { getDocument, downloadVersion } from "@/services/documentService";
+import DocumentSharePanel from "./DocumentSharePanel";
 
 function Field({ label, children }) {
   return (
@@ -192,6 +193,10 @@ export default function DocumentDetailView({ documentId }) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <DocumentSharePanel documentId={documentId} ownerId={info.ownerId} onToast={setToast} />
       </div>
 
       {/* Version History */}

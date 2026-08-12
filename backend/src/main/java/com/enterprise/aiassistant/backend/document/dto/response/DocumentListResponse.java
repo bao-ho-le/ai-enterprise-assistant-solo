@@ -39,4 +39,14 @@ public class DocumentListResponse {
 
     // Thời điểm xoá mềm (null nếu document đang ACTIVE) — dùng cho màn Trash.
     private LocalDateTime deletedAt;
+
+    private Long ownerId;
+
+    private String ownerName;
+
+    private Long departmentId;
+
+    private String departmentName;
+
+    private String deletedByName;
 }

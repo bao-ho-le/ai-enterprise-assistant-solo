@@ -114,6 +114,15 @@ export function rangeSegments(text, ranges) {
   return segments;
 }
 
+// "Nguyen Tran" -> "NT" (avatar initials: first + last word).
+export function getInitials(fullName) {
+  if (!fullName) return "?";
+  const parts = fullName.trim().split(/\s+/);
+  const first = parts[0]?.[0] || "";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + last).toUpperCase();
+}
+
 // Save a Blob to disk from the browser.
 export function saveBlob(blob, filename) {
   const url = URL.createObjectURL(blob);

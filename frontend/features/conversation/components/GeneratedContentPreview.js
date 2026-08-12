@@ -77,7 +77,7 @@ export default function GeneratedContentPreview({ item, onBack }) {
               <Copy className="h-3.5 w-3.5" />
             </button>
           </div>
-          <p className="text-sm text-text-primary leading-relaxed whitespace-pre-wrap">
+          <p className="text-sm text-text-primary leading-relaxed whitespace-pre-wrap text-justify">
             {item?.content}
           </p>
         </div>

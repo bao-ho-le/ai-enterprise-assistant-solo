@@ -1,7 +1,7 @@
 package com.enterprise.aiassistant.backend;
 
-import com.enterprise.aiassistant.backend.ai.embedding.config.GeminiProperties;
-import com.enterprise.aiassistant.backend.ai.vectorstore.config.QdrantProperties;
+import com.enterprise.aiassistant.backend.ai.infrastructure.embedding.config.GeminiProperties;
+import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.config.QdrantProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

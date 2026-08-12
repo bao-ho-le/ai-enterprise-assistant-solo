@@ -1,9 +1,9 @@
 package com.enterprise.aiassistant.backend.processing.orchestration.helper;
 
-import com.enterprise.aiassistant.backend.ai.usage.dto.request.AIUsageLogRequest;
-import com.enterprise.aiassistant.backend.ai.usage.enums.AIUsageStatus;
-import com.enterprise.aiassistant.backend.ai.usage.enums.ConversationType;
-import com.enterprise.aiassistant.backend.ai.usage.service.AIUsageLogService;
+import com.enterprise.aiassistant.backend.ai.analytics.usage.dto.request.AIUsageLogRequest;
+import com.enterprise.aiassistant.backend.ai.analytics.usage.enums.AIUsageStatus;
+import com.enterprise.aiassistant.backend.ai.analytics.usage.enums.ConversationType;
+import com.enterprise.aiassistant.backend.ai.analytics.usage.service.AIUsageLogService;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.BusinessException;
 import com.enterprise.aiassistant.backend.document.entity.DocumentVersion;

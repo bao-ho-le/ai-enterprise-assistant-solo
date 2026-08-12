@@ -69,7 +69,8 @@ export function ParentFolderRow({ onOpen, targetFolderId, onDropMove }) {
       <EmptyCell />
       <EmptyCell />
       <EmptyCell />
-      <EmptyCell />
+      {/* Cột Actions để trống (không hiện dấu gạch) vì row này không có action. */}
+      <div role="cell" className="border-b border-border-default px-4 py-1" />
     </div>
   );
 }

@@ -1,0 +1,185 @@
+package com.enterprise.aiassistant.backend.ai.knowledge.qa.service;
+
+import com.enterprise.aiassistant.backend.ai.chat.conversation.entity.AIConversation;
+import com.enterprise.aiassistant.backend.ai.chat.conversation.entity.AIConversationDocument;
+import com.enterprise.aiassistant.backend.ai.chat.conversation.helper.AIConversationHelper;
+import com.enterprise.aiassistant.backend.ai.chat.conversation.repository.AIConversationDocumentRepository;
+import com.enterprise.aiassistant.backend.ai.infrastructure.embedding.dto.EmbeddingResult;
+import com.enterprise.aiassistant.backend.ai.infrastructure.embedding.service.EmbeddingService;
+import com.enterprise.aiassistant.backend.ai.infrastructure.llm.dto.LLMResponse;
+import com.enterprise.aiassistant.backend.ai.infrastructure.llm.service.LLMService;
+import com.enterprise.aiassistant.backend.ai.chat.memory.service.ConversationMemoryService;
+import com.enterprise.aiassistant.backend.ai.chat.message.entity.AIMessage;
+import com.enterprise.aiassistant.backend.ai.chat.message.entity.AIMessageSource;
+import com.enterprise.aiassistant.backend.ai.chat.message.enums.AIMessageRole;
+import com.enterprise.aiassistant.backend.ai.chat.message.mapper.AIMessageMapper;
+import com.enterprise.aiassistant.backend.ai.chat.message.repository.AIMessageRepository;
+import com.enterprise.aiassistant.backend.ai.chat.message.repository.AIMessageSourceRepository;
+import com.enterprise.aiassistant.backend.ai.infrastructure.prompt.service.PromptBuilderService;
+import com.enterprise.aiassistant.backend.ai.knowledge.qa.mapper.QAMapper;
+import com.enterprise.aiassistant.backend.ai.analytics.usage.dto.request.AIUsageLogRequest;
+import com.enterprise.aiassistant.backend.ai.analytics.usage.enums.AIUsageStatus;
+import com.enterprise.aiassistant.backend.ai.analytics.usage.service.AIUsageLogService;
+import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.dto.SearchResult;
+import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.dto.VectorPayload;
+import com.enterprise.aiassistant.backend.ai.infrastructure.vectorstore.service.VectorStoreService;
+import com.enterprise.aiassistant.backend.document.entity.Document;
+import com.enterprise.aiassistant.backend.document.repository.DocumentChunkRepository;
+import com.enterprise.aiassistant.backend.document.service.DocumentAuthorizationService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Set;
+
+@Service
+@RequiredArgsConstructor
+public class DocumentQAServiceImpl implements DocumentQAService {
+
+    private static final int CHAT_TOP_K = 5;
+
+    private final AIConversationDocumentRepository conversationDocumentRepository;
+    private final AIMessageRepository messageRepository;
+    private final AIMessageSourceRepository messageSourceRepository;
+    private final DocumentChunkRepository documentChunkRepository;
+
+    private final EmbeddingService embeddingService;
+    private final VectorStoreService vectorStoreService;
+    private final ConversationMemoryService conversationMemoryService;
+    private final PromptBuilderService promptBuilderService;
+    private final LLMService llmService;
+    private final AIUsageLogService aiUsageLogService;
+
+    private final AIMessageMapper messageMapper;
+    private final QAMapper qaMapper;
+    private final AIConversationHelper aiConversationHelper;
+    private final DocumentAuthorizationService documentAuthorizationService;
+
+    @Override
+    public AIMessage answer(AIConversation conversation, String question) {
+
+        List<AIConversationDocument> attachedDocuments =
+                conversationDocumentRepository.findByAiConversationIdWithDocument(conversation.getId());
+
+        // Không build context / không gọi LLM nếu có tài liệu đính kèm đã bị soft-delete
+        aiConversationHelper.validateAttachedDocumentsNotDeleted(attachedDocuments);
+
+        // Quyền có thể bị thu hồi sau khi attach — lọc lại ngay trước khi build context cho LLM.
+        Set<Long> readableDocumentIds = documentAuthorizationService.filterReadableDocumentIds(
+                attachedDocuments.stream()
+                        .map(link -> link.getDocumentVersion().getDocument())
+                        .filter(java.util.Objects::nonNull)
+                        .toList()
+        );
+
+        List<Long> attachedVersionIds = attachedDocuments.stream()
+                .filter(link -> isReadable(link.getDocumentVersion().getDocument(), readableDocumentIds))
+                .map(link -> link.getDocumentVersion().getId())
+                .toList();
+
+        String model = llmService.getModelName();
+        Integer inputTokens = null;
+        Integer outputTokens = null;
+        Long messageId = null;
+
+        try {
+            // Context các lượt trước (chưa gồm câu hỏi hiện tại): giúp LLM hiểu tham chiếu
+            String conversationMemory = conversationMemoryService.buildMemoryContext(conversation.getId());
+
+            List<SearchResult> relevantHits = attachedVersionIds.isEmpty()
+                    ? List.of()
+                    : retrieveRelevantChunks(question, attachedVersionIds);
+
+            String prompt = promptBuilderService.buildDocumentQaPrompt(
+                    question,
+                    relevantHits.stream().map(hit -> hit.getPayload().getContent()).toList(),
+                    conversationMemory
+            );
+
+            LLMResponse llmResponse = llmService.generate(
+                    qaMapper.toLLMRequest(
+                            prompt,
+                            conversation.getConversationType(),
+                            relevantHits.size()
+                    )
+            );
+
+            model = llmResponse.getModelName();
+            if (llmResponse.getTokenUsage() != null) {
+                inputTokens = llmResponse.getTokenUsage().getInputTokens();
+                outputTokens = llmResponse.getTokenUsage().getOutputTokens();
+            }
+
+            AIMessage assistantMessage = messageRepository.save(
+                    messageMapper.toMessage(conversation, AIMessageRole.ASSISTANT, llmResponse.getContent())
+            );
+
+            if (!relevantHits.isEmpty()) {
+                messageSourceRepository.saveAll(
+                        relevantHits.stream().map(hit -> toMessageSource(assistantMessage, hit)).toList()
+                );
+            }
+
+            messageId = assistantMessage.getId();
+            aiUsageLogService.logAiUsage(
+                    AIUsageLogRequest.builder()
+                            .conversationId(conversation.getId())
+                            .messageId(messageId)
+                            .conversationType(conversation.getConversationType())
+                            .model(model)
+                            .inputTokens(inputTokens)
+                            .outputTokens(outputTokens)
+                            .status(AIUsageStatus.SUCCESS)
+                            .build()
+            );
+
+            return assistantMessage;
+
+        } catch (RuntimeException ex) {
+            aiUsageLogService.logAiUsage(
+                    AIUsageLogRequest.builder()
+                            .conversationId(conversation.getId())
+                            .messageId(messageId)
+                            .conversationType(conversation.getConversationType())
+                            .model(model)
+                            .inputTokens(inputTokens)
+                            .outputTokens(outputTokens)
+                            .status(AIUsageStatus.FAILED)
+                            .build()
+            );
+            return null;
+        }
+    }
+
+
+    // Helper
+
+    private boolean isReadable(Document document, Set<Long> readableDocumentIds) {
+        return document != null && readableDocumentIds.contains(document.getId());
+    }
+
+    // Chỉ lấy tối đa 5 chunks có độ liên quan cao nhất (CHAT_TOP_K)
+    private List<SearchResult> retrieveRelevantChunks(String question, List<Long> attachedVersionIds) {
+
+        EmbeddingResult queryEmbedding = embeddingService.embed(question);
+
+        return vectorStoreService.search(queryEmbedding.getVector(), CHAT_TOP_K, null).stream()
+                .filter(hit -> attachedVersionIds.contains(hit.getPayload().getDocumentVersionId()))
+                .toList();
+    }
+
+    private AIMessageSource toMessageSource(AIMessage assistantMessage, SearchResult hit) {
+
+        VectorPayload payload = hit.getPayload();
+
+        return AIMessageSource.builder()
+                .aiMessage(assistantMessage)
+                .documentChunk(documentChunkRepository.getReferenceById(payload.getChunkId()))
+                .similarityScore(hit.getScore())
+                .documentVersionId(payload.getDocumentVersionId())
+                .chunkId(payload.getChunkId())
+                .score(hit.getScore())
+                .build();
+    }
+
+}

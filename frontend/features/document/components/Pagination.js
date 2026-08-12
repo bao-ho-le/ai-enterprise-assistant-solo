@@ -17,6 +17,7 @@ export default function Pagination({
   itemLabel = "documents",
   showSummary = true,
   bare = false,
+  footerClassName = "bg-bg-secondary py-3",
 }) {
   const controls = (
     <div className="flex items-center gap-2">
@@ -47,7 +48,7 @@ export default function Pagination({
   if (bare) return controls;
 
   return (
-    <div className={`flex items-center px-4 py-3 border-t border-border-subtle bg-bg-secondary ${showSummary ? "justify-between" : "justify-end"}`}>
+    <div className={`flex items-center px-4 border-t border-border-subtle ${footerClassName} ${showSummary ? "justify-between" : "justify-end"}`}>
       {showSummary && (
         <p className="text-sm text-text-muted">
           Showing {shown} of {totalElements} {itemLabel}

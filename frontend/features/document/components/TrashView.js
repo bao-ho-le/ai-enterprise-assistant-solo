@@ -8,6 +8,7 @@ import Toast from "@/components/ui/Toast";
 import { listDocuments, restoreDocument } from "@/services/documentService";
 import { getDeletedFolders, restoreFolder } from "@/services/folderService";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useAuth } from "@/lib/AuthContext";
 
 const PAGE_SIZE = 20;
 
@@ -37,6 +38,7 @@ export default function TrashView() {
     [searchParams]
   );
   const scrolledToHighlightRef = useRef(false);
+  const { user } = useAuth();
 
   const [folders, setFolders] = useState([]);
   const [documents, setDocuments] = useState([]);
@@ -67,6 +69,7 @@ export default function TrashView() {
       listDocuments(
         {
           documentStatus: "DELETED",
+          ownerId: user?.id,
           sort: "newest",
           page,
           size: PAGE_SIZE,
@@ -74,7 +77,7 @@ export default function TrashView() {
         },
         signal
       ),
-    [trimmedKeyword]
+    [trimmedKeyword, user?.id]
   );
 
   useEffect(() => {
