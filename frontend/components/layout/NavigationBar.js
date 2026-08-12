@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, Menu, User, LogOut, ShieldCheck } from "lucide-react";
+import { Sparkles, Menu, User, LogOut, ShieldCheck, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { isAdmin } from "@/lib/permissions";
 import { getInitials } from "@/utils/format";
@@ -15,7 +15,6 @@ const NAV_LINKS = [
   { href: "/write-report", label: "Write Report" },
   { href: "/summary", label: "Summary" },
   { href: "/document-qa", label: "Document QA" },
-  { href: "/file-storage/trash", label: "Trash" },
   { href: "/ai-usage", label: "AI Usage" },
 ];
 
@@ -103,7 +102,7 @@ export default function NavigationBar() {
               aria-expanded={accountOpen}
               aria-label="Account menu"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-elevated text-xs font-medium text-text-secondary">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-bg-elevated text-xs font-medium text-text-secondary">
                 {getInitials(user?.fullName)}
               </span>
               <span className="hidden text-sm text-text-secondary sm:inline">
@@ -125,6 +124,24 @@ export default function NavigationBar() {
                 >
                   <User className="h-4 w-4 text-text-muted" />
                   Profile
+                </Link>
+                <Link
+                  href="/file-storage/trash"
+                  role="menuitem"
+                  onClick={() => setAccountOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-bg-elevated"
+                >
+                  <Trash2 className="h-4 w-4 text-text-muted" />
+                  Trash
+                </Link>
+                <Link
+                  href="/conversations/deleted"
+                  role="menuitem"
+                  onClick={() => setAccountOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-bg-elevated"
+                >
+                  <Trash2 className="h-4 w-4 text-text-muted" />
+                  Deleted conversations
                 </Link>
                 {isAdmin(user) && (
                   <Link
@@ -163,7 +180,7 @@ export default function NavigationBar() {
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen((v) => !v)}
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
