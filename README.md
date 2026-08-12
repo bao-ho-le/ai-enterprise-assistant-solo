@@ -79,10 +79,10 @@
 | Lê Võ | Module Permission: thiết kế và triển khai cơ chế phân quyền · Quản lý quyền truy cập tài liệu theo User/Department |
 | Trần Nhật Nguyên | Module Authentication: đăng nhập, xác thực người dùng, JWT/Refresh Token · Hỗ trợ triển khai Permission |
 
-### Giai đoạn 6 — Hoàn thiện, tích hợp & kiểm thử (12/08 – 18/08/2026) ✅ Đã xong
+### Giai đoạn 6 — Hoàn thiện, tích hợp & kiểm thử (12/08 – 18/08/2026) 🔄 Đã xong
 
 | Thành viên | Công việc phụ trách |
 | --- | --- |
-| Nguyễn Ngọc Huy | Hoàn thiện Admin · Hoàn thiện thống kê AI Usage · Kiểm thử các chức năng quản trị |
+| Nguyễn Ngọc Huy | Hoàn thiện Admin · Hoàn thiện thống kê AI Usage |
 | Lê Võ | Hoàn thiện Permission & Document Access Control · Tích hợp phân quyền với các module Document, Conversation và Generation |
 | Trần Nhật Nguyên | Hoàn thiện Authentication · Tích hợp JWT/Refresh Token với hệ thống · Kiểm thử Authentication & Authorization |
