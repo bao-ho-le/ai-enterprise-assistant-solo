@@ -23,7 +23,9 @@ public record DocumentDetailResponse(
             DocumentStatus status,
             DocumentType documentType,
             LocalDateTime createdAt,
-            LocalDateTime updatedAt
+            LocalDateTime updatedAt,
+            Long ownerId,
+            String ownerName
     ) {
     }
 

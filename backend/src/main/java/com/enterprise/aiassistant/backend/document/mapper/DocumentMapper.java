@@ -162,13 +162,16 @@ public class DocumentMapper {
     }
 
     public DocumentDetailResponse.DocumentInfo toDocumentInfo(Document document) {
+        User owner = document.getOwner();
         return new DocumentDetailResponse.DocumentInfo(
                 document.getTitle(),
                 document.getDescription(),
                 document.getStatus(),
                 document.getDocumentType(),
                 document.getCreatedAt(),
-                document.getUpdatedAt()
+                document.getUpdatedAt(),
+                owner != null ? owner.getId() : null,
+                owner != null ? owner.getFullName() : null
         );
     }
 
