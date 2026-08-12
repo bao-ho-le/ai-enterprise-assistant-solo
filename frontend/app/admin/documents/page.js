@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Download, RotateCcw, Search, Share2, Trash2 } from "lucide-react";
+import { Download, Search, Share2, Trash2 } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import Toast from "@/components/ui/Toast";
 import AdminTableState from "@/features/admin/components/AdminTableState";
@@ -18,7 +18,6 @@ import {
   getAdminDocumentShares,
   getAdminDocuments,
   getAdminUsers,
-  restoreAdminDocument,
 } from "@/services/adminService";
 import { formatBytes, formatDateTime, saveBlob } from "@/utils/format";
 
@@ -37,7 +36,6 @@ export default function AdminDocumentsPage() {
   const [keyword, setKeyword] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [ownerId, setOwnerId] = useState("");
-  const [documentStatus, setDocumentStatus] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -57,7 +55,7 @@ export default function AdminDocumentsPage() {
       keyword: keyword.trim() || undefined,
       departmentId: departmentId || undefined,
       ownerId: ownerId || undefined,
-      documentStatus: documentStatus || undefined,
+      documentStatus: "ACTIVE",
       page,
       size: PAGE_SIZE,
     })
@@ -68,7 +66,7 @@ export default function AdminDocumentsPage() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [keyword, departmentId, ownerId, documentStatus, page]);
+  }, [keyword, departmentId, ownerId, page]);
 
   useEffect(() => {
     const timer = setTimeout(load, 250);
@@ -115,8 +113,8 @@ export default function AdminDocumentsPage() {
   };
 
   return (
-    <main className="flex-1 mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
-      <div className="filter-toolbar mb-4">
+    <main className="flex flex-1 flex-col overflow-hidden mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
+      <div className="filter-toolbar mb-4 shrink-0">
         <div className="filter-toolbar-item filter-toolbar-item--search">
           <label className="label-text">Search</label>
           <div className="relative">
@@ -169,25 +167,11 @@ export default function AdminDocumentsPage() {
             ))}
           </select>
         </div>
-        <div className="filter-toolbar-item filter-toolbar-item--auto">
-          <label className="label-text">Status</label>
-          <select
-            className="select-field"
-            value={documentStatus}
-            onChange={(e) => {
-              setPage(0);
-              setDocumentStatus(e.target.value);
-            }}
-          >
-            <option value="">All</option>
-            <option value="ACTIVE">Active</option>
-            <option value="DELETED">Deleted</option>
-          </select>
-        </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border-subtle bg-bg-primary">
-        <table className="w-full min-w-[1200px] border-collapse">
+      <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl border border-border-subtle bg-bg-primary">
+        <div className="min-h-0 flex-1 overflow-auto">
+        <table className="w-full min-w-[1100px] border-collapse">
           <thead>
             <tr className="border-b border-border-default">
               {[
@@ -198,12 +182,11 @@ export default function AdminDocumentsPage() {
                 "Size",
                 "Uploaded",
                 "Processing",
-                "Status",
                 "",
               ].map((h, i) => (
                 <th
                   key={h || i}
-                  className="whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary"
+                  className="sticky top-0 z-10 bg-bg-primary whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary shadow-[inset_0_-1px_0_var(--border-default)]"
                 >
                   {h}
                 </th>
@@ -212,7 +195,7 @@ export default function AdminDocumentsPage() {
           </thead>
           <tbody>
             <AdminTableState
-              colSpan={9}
+              colSpan={8}
               loading={loading}
               error={error}
               empty={!loading && !error && documents.length === 0}
@@ -225,7 +208,6 @@ export default function AdminDocumentsPage() {
               documents.map((doc) => {
                 const { Icon: ExtIcon, bg, color } = extensionIcon(doc.extension);
                 const processing = versionStatusBadge(doc.versionStatus);
-                const deleted = doc.documentStatus === "DELETED";
 
                 return (
                   <tr
@@ -258,11 +240,6 @@ export default function AdminDocumentsPage() {
                     <td className="px-4 py-2">
                       <span className={`badge ${processing.badge}`}>{processing.label}</span>
                     </td>
-                    <td className="px-4 py-2">
-                      <span className={`badge ${deleted ? "badge-error" : "badge-success"}`}>
-                        {doc.documentStatus}
-                      </span>
-                    </td>
                     <td className="whitespace-nowrap px-4 py-2 text-right">
                       {canManageAccess && (
                         <button
@@ -274,7 +251,7 @@ export default function AdminDocumentsPage() {
                           <Share2 className="h-4 w-4" />
                         </button>
                       )}
-                      {canDownload && !deleted && (
+                      {canDownload && (
                         <button
                           type="button"
                           className="btn-ghost p-1.5"
@@ -284,17 +261,7 @@ export default function AdminDocumentsPage() {
                           <Download className="h-4 w-4" />
                         </button>
                       )}
-                      {canDelete && deleted && (
-                        <button
-                          type="button"
-                          className="btn-ghost p-1.5"
-                          aria-label={`Restore ${doc.title}`}
-                          onClick={() => run(() => restoreAdminDocument(doc.id), "Đã khôi phục")}
-                        >
-                          <RotateCcw className="h-4 w-4 text-success" />
-                        </button>
-                      )}
-                      {canDelete && !deleted && (
+                      {canDelete && (
                         <button
                           type="button"
                           className="btn-ghost p-1.5"
@@ -310,6 +277,7 @@ export default function AdminDocumentsPage() {
               })}
           </tbody>
         </table>
+        </div>
         <Pagination
           number={page}
           totalPages={totalPages}
@@ -317,6 +285,7 @@ export default function AdminDocumentsPage() {
           shown={documents.length}
           onPrev={() => setPage((p) => p - 1)}
           onNext={() => setPage((p) => p + 1)}
+          footerClassName="bg-bg-primary py-2"
         />
       </div>
 

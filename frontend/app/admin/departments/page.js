@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Search, Trash2, UserMinus } from "lucide-react";
+import { Pencil, Plus, Search, Trash2, UserMinus } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import Toast from "@/components/ui/Toast";
 import AdminTableState from "@/features/admin/components/AdminTableState";
@@ -48,6 +48,8 @@ export default function AdminDepartmentsPage() {
 
   const [candidates, setCandidates] = useState([]);
   const [memberToAdd, setMemberToAdd] = useState("");
+  const [pendingAddMember, setPendingAddMember] = useState(null);
+  const [pendingManagerChange, setPendingManagerChange] = useState(null);
 
   const canCreate = hasPermission(currentUser, "DEPARTMENT_CREATE");
   const canUpdate = hasPermission(currentUser, "DEPARTMENT_UPDATE");
@@ -125,25 +127,8 @@ export default function AdminDepartmentsPage() {
   );
 
   return (
-    <main className="flex-1 mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
-      {canCreate && (
-        <div className="mb-5 flex justify-end">
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => {
-              setEditing(null);
-              setForm({ name: "", description: "" });
-              setFormOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4" />
-            Thêm phòng ban
-          </button>
-        </div>
-      )}
-
-      <div className="filter-toolbar mb-4">
+    <main className="flex flex-1 flex-col overflow-hidden mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
+      <div className="filter-toolbar mb-4 shrink-0">
         <div className="filter-toolbar-item filter-toolbar-item--search">
           <label className="label-text">Search</label>
           <div className="relative">
@@ -160,81 +145,105 @@ export default function AdminDepartmentsPage() {
             />
           </div>
         </div>
+        {canCreate && (
+          <div className="ml-auto">
+            <button
+              type="button"
+              className="btn-primary"
+              style={{ height: "2.25rem" }}
+              onClick={() => {
+                setEditing(null);
+                setForm({ name: "", description: "" });
+                setFormOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              New Department
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border-subtle bg-bg-primary">
-        <table className="w-full min-w-[900px] border-collapse">
-          <thead>
-            <tr className="border-b border-border-default">
-              {["Name", "Members", "Created", ""].map((h, i) => (
-                <th
-                  key={h || i}
-                  className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <AdminTableState
-              colSpan={4}
-              loading={loading}
-              error={error}
-              empty={!loading && !error && departments.length === 0}
-              emptyText="Chưa có phòng ban nào"
-              onRetry={load}
-            />
+      <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl border border-border-subtle bg-bg-primary">
+        <div className="min-h-0 flex-1 overflow-auto">
+          <table className="w-full min-w-[900px] border-collapse">
+            <thead>
+              <tr className="border-b border-border-default">
+                {["Name", "Members", "Created", ""].map((h, i) => (
+                  <th
+                    key={h || i}
+                    className="sticky top-0 z-10 bg-bg-primary px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary shadow-[inset_0_-1px_0_var(--border-default)]"
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <AdminTableState
+                colSpan={4}
+                loading={loading}
+                error={error}
+                empty={!loading && !error && departments.length === 0}
+                emptyText="Chưa có phòng ban nào"
+                onRetry={load}
+              />
 
-            {!loading &&
-              !error &&
-              departments.map((d) => (
-                <tr
-                  key={d.departmentId}
-                  className="cursor-pointer border-b border-border-default transition-colors hover:bg-bg-elevated/50"
-                  onClick={() => openDetail(d.departmentId)}
-                >
-                  <td className="px-4 py-2">
-                    <span className="text-xs font-medium text-text-primary">{d.name}</span>
-                    {d.description && (
-                      <p className="mt-0.5 line-clamp-1 text-xs text-text-muted">{d.description}</p>
-                    )}
-                  </td>
-                  <td className="px-4 py-2">
-                    <span className="badge badge-neutral">{d.memberCount}</span>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-xs text-text-secondary">
-                    {formatDateTime(d.createdAt)}
-                  </td>
-                  <td className="px-4 py-2 text-right" onClick={(e) => e.stopPropagation()}>
-                    {canUpdate && (
-                      <button
-                        type="button"
-                        className="btn-ghost px-2 py-1 text-xs"
-                        onClick={() => {
-                          setEditing(d);
-                          setForm({ name: d.name, description: d.description ?? "" });
-                          setFormOpen(true);
-                        }}
-                      >
-                        Sửa
-                      </button>
-                    )}
-                    {canDelete && (
-                      <button
-                        type="button"
-                        className="btn-ghost p-1.5"
-                        aria-label={`Delete ${d.name}`}
-                        onClick={() => setPendingDelete(d)}
-                      >
-                        <Trash2 className="h-4 w-4 text-error" />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+              {!loading &&
+                !error &&
+                departments.map((d) => (
+                  <tr
+                    key={d.departmentId}
+                    className="cursor-pointer border-b border-border-default transition-colors hover:bg-bg-elevated/50"
+                    onDoubleClick={() => openDetail(d.departmentId)}
+                  >
+                    <td className="px-4 py-2">
+                      <span className="text-xs font-medium text-text-primary">{d.name}</span>
+                      {d.description && (
+                        <p className="mt-0.5 line-clamp-1 text-xs text-text-muted">{d.description}</p>
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      <span className="badge badge-neutral">{d.memberCount}</span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2 text-xs text-text-secondary">
+                      {formatDateTime(d.createdAt)}
+                    </td>
+                    <td
+                      className="px-4 py-2 text-right"
+                      onClick={(e) => e.stopPropagation()}
+                      onDoubleClick={(e) => e.stopPropagation()}
+                    >
+                      {canUpdate && (
+                        <button
+                          type="button"
+                          className="btn-ghost p-1.5"
+                          aria-label={`Edit ${d.name}`}
+                          onClick={() => {
+                            setEditing(d);
+                            setForm({ name: d.name, description: d.description ?? "" });
+                            setFormOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          type="button"
+                          className="btn-ghost p-1.5"
+                          aria-label={`Delete ${d.name}`}
+                          onClick={() => setPendingDelete(d)}
+                        >
+                          <Trash2 className="h-4 w-4 text-error" />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
         <Pagination
           number={page}
           totalPages={totalPages}
@@ -243,6 +252,7 @@ export default function AdminDepartmentsPage() {
           onPrev={() => setPage((p) => p - 1)}
           onNext={() => setPage((p) => p + 1)}
           itemLabel="departments"
+          footerClassName="bg-bg-primary py-2"
         />
       </div>
 
@@ -275,18 +285,14 @@ export default function AdminDepartmentsPage() {
                 className="select-field"
                 value={detail.manager?.userId ?? ""}
                 disabled={!canUpdate}
-                onChange={(e) =>
-                  runOnDetail(
-                    async () => {
-                      await assignAdminDepartmentManager(
-                        detail.department.departmentId,
-                        e.target.value ? Number(e.target.value) : null
-                      );
-                      return getAdminDepartmentDetail(detail.department.departmentId);
-                    },
-                    "Đã cập nhật manager"
-                  )
-                }
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const selected = detail.members.find((m) => String(m.userId) === value);
+                  setPendingManagerChange({
+                    userId: value ? Number(value) : null,
+                    fullName: selected?.fullName ?? null,
+                  });
+                }}
               >
                 <option value="">—</option>
                 {detail.members
@@ -322,17 +328,12 @@ export default function AdminDepartmentsPage() {
                 <button
                   type="button"
                   className="btn-primary"
+                  style={{ height: "2.25rem" }}
                   disabled={!memberToAdd}
-                  onClick={() =>
-                    runOnDetail(async () => {
-                      const updated = await addAdminDepartmentMembers(
-                        detail.department.departmentId,
-                        [Number(memberToAdd)]
-                      );
-                      setMemberToAdd("");
-                      return updated;
-                    }, "Đã thêm thành viên")
-                  }
+                  onClick={() => {
+                    const selected = memberOptions.find((c) => String(c.id) === memberToAdd);
+                    setPendingAddMember({ userId: Number(memberToAdd), fullName: selected?.fullName ?? "" });
+                  }}
                 >
                   Thêm
                 </button>
@@ -444,6 +445,43 @@ export default function AdminDepartmentsPage() {
           } catch (e) {
             setToast({ type: "error", text: e.message });
           }
+        }}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingAddMember)}
+        title="Thêm thành viên"
+        message={`Thêm "${pendingAddMember?.fullName}" vào phòng ban "${detail?.department?.name}"?`}
+        confirmLabel="Thêm"
+        onClose={() => setPendingAddMember(null)}
+        onConfirm={async () => {
+          const target = pendingAddMember;
+          setPendingAddMember(null);
+          await runOnDetail(async () => {
+            const updated = await addAdminDepartmentMembers(detail.department.departmentId, [target.userId]);
+            setMemberToAdd("");
+            return updated;
+          }, "Đã thêm thành viên");
+        }}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingManagerChange)}
+        title="Cập nhật manager"
+        message={
+          pendingManagerChange?.userId
+            ? `Gán "${pendingManagerChange?.fullName}" làm manager của phòng ban "${detail?.department?.name}"?`
+            : `Bỏ manager hiện tại của phòng ban "${detail?.department?.name}"?`
+        }
+        confirmLabel="Xác nhận"
+        onClose={() => setPendingManagerChange(null)}
+        onConfirm={async () => {
+          const target = pendingManagerChange;
+          setPendingManagerChange(null);
+          await runOnDetail(async () => {
+            await assignAdminDepartmentManager(detail.department.departmentId, target.userId);
+            return getAdminDepartmentDetail(detail.department.departmentId);
+          }, "Đã cập nhật manager");
         }}
       />
 

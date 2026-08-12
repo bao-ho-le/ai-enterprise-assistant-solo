@@ -80,7 +80,10 @@ export default function AdminLayout({ children }) {
         </Link>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">{children}</div>
+      {/* Bounded, not scrollable: each page below owns its own scroll region
+          (a table with an internal scroll body, or its own overflow-y-auto)
+          so a table's rows can scroll independently of its header/pagination. */}
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">{children}</div>
     </div>
   );
 }

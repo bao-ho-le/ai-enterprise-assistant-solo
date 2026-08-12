@@ -80,7 +80,7 @@ export default function AdminRolesPage() {
       draft.some((p) => !current.permissions.includes(p)));
 
   return (
-    <main className="flex-1 mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
+    <main className="flex-1 overflow-y-auto mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
       {loading && (
         <div className="flex items-center justify-center py-24">
           <Loader2 className="h-6 w-6 animate-spin text-text-muted" />

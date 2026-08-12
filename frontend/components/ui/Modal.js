@@ -1,17 +1,30 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { X } from "lucide-react";
 
+// Escape should only close the topmost modal when more than one is open at
+// once (e.g. a confirm dialog opened from inside another modal).
+const openStack = [];
+
 export default function Modal({ open, onClose, title, children, maxWidth = "max-w-lg", preventClose = false }) {
+  const id = useId();
+
   useEffect(() => {
     if (!open) return;
+    openStack.push(id);
     const onKey = (e) => {
-      if (e.key === "Escape" && !preventClose) onClose();
+      if (e.key !== "Escape" || preventClose) return;
+      if (openStack[openStack.length - 1] !== id) return;
+      onClose();
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose, preventClose]);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      const index = openStack.indexOf(id);
+      if (index !== -1) openStack.splice(index, 1);
+    };
+  }, [open, onClose, preventClose, id]);
 
   if (!open) return null;
 
