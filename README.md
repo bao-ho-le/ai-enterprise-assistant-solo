@@ -68,21 +68,21 @@
 | Thành viên | Công việc phụ trách |
 |---|---|
 | Lê Võ | Triển khai LLM, Document QA (RAG) |
-| Nguyễn Ngọc Huy | Report Generation (sinh báo cáo) |
+| Nguyễn Ngọc Huy | Report Generation (sinh báo cáo) · Module Folder |
 | Trần Nhật Nguyên | Summary Generation (tóm tắt), Email Generation (soạn email) |
 
-### Giai đoạn 5 — Authentication, Permission & Admin (05/08 – 11/08/2026) ✅ Đã xong
+### Giai đoạn 5 — Authentication, Permission, Admin & Cải thiện module QA (05/08 – 11/08/2026) ✅ Đã xong
 
 | Thành viên | Công việc phụ trách |
 | --- | --- |
 | Nguyễn Ngọc Huy | Module Admin: quản lý và thống kê hệ thống · Hoàn thiện Module Folder |
-| Lê Võ | Module Permission: thiết kế và triển khai cơ chế phân quyền · Quản lý quyền truy cập tài liệu theo User/Department |
-| Trần Nhật Nguyên | Module Authentication: đăng nhập, xác thực người dùng, JWT/Refresh Token · Hỗ trợ triển khai Permission |
+| Lê Võ | Cải thiện module QA: Conversation Context (Ai có khả năng nhớ context từ các message trước), General Chat · Module Permission: ABAC (Attribute-Based Access Control) |
+| Trần Nhật Nguyên | Module Authentication: đăng nhập, xác thực người dùng, JWT, Refresh/Access Token · Module Permission: RBAC (Role-Based Access Control) |
 
-### Giai đoạn 6 — Hoàn thiện, tích hợp & kiểm thử (12/08 – 18/08/2026) 🔄 Đang thực hiện
+### Giai đoạn 6 — Hoàn thiện (12/08 – đến nay) 🔄 Đang thực hiện
 
 | Thành viên | Công việc phụ trách |
 | --- | --- |
 | Nguyễn Ngọc Huy | Hoàn thiện Admin · Hoàn thiện thống kê AI Usage |
-| Lê Võ | Hoàn thiện Permission & Document Access Control · Tích hợp phân quyền với các module Document, Conversation và Generation |
-| Trần Nhật Nguyên | Hoàn thiện Authentication · Tích hợp JWT/Refresh Token với hệ thống · Kiểm thử Authentication & Authorization |
+| Lê Võ | Hoàn thiện Permission: ABAC |
+| Trần Nhật Nguyên | Hoàn thiện Authentication · Hoàn thiện Permission RBAC |
