@@ -13,6 +13,7 @@ import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthorizationException;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.GeneratedException;
+import com.enterprise.aiassistant.backend.user.entity.Permission;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -34,6 +35,8 @@ public class GeneratedContentServiceImpl implements GeneratedContentService {
             GeneratedDocumentType generatedType,
             Pageable pageable
     ) {
+        currentUserService.requirePermission(Permission.AI_DOCUMENT_GENERATION);
+
         return generatedContentRepository
                 .findOwnedByUser(
                         currentUserService.getCurrentUserId(),
@@ -48,6 +51,8 @@ public class GeneratedContentServiceImpl implements GeneratedContentService {
     public GeneratedContentDetailResponse getGeneratedContentById(Long generatedContentId) {
         generatedHelper.validateGeneratedContentId(generatedContentId);
 
+        currentUserService.requirePermission(Permission.AI_DOCUMENT_GENERATION);
+
         GeneratedContent generatedContent = getGeneratedContentOrThrow(generatedContentId);
 
         return generatedMapper.toGeneratedContentDetailResponse(generatedContent);
@@ -61,6 +66,8 @@ public class GeneratedContentServiceImpl implements GeneratedContentService {
     ) {
         generatedHelper.validateGeneratedContentId(generatedContentId);
         generatedHelper.validateUpdateRequest(request);
+
+        currentUserService.requirePermission(Permission.AI_DOCUMENT_GENERATION);
 
         GeneratedContent generatedContent = getGeneratedContentOrThrow(generatedContentId);
 

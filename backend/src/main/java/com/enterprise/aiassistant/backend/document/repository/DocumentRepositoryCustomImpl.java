@@ -104,6 +104,8 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
     }
 
 
+    // Helper
+
     private long countDocuments(DocumentFilterRequest filter, DocumentAccessScope scope) {
 
         StringBuilder jpql = new StringBuilder("""

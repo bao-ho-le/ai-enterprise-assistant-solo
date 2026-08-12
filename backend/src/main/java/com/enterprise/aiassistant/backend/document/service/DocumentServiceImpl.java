@@ -168,15 +168,14 @@ public class DocumentServiceImpl implements DocumentService {
     ) {
 
         documentHelper.validateDocumentId(documentId);
-        documentHelper.validateFile(file);
-        documentHelper.validateVersionRequest(request);
-
 
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocumentException(DOCUMENT_NOT_FOUND));
 
         documentAuthorizationService.requireUpdate(document);
 
+        documentHelper.validateFile(file);
+        documentHelper.validateVersionRequest(request);
         documentHelper.validateDocumentStatus(document);
 
         // Upload file mới vào storage
@@ -234,12 +233,13 @@ public class DocumentServiceImpl implements DocumentService {
     ) {
 
         documentHelper.validateDocumentId(documentId);
-        documentHelper.validateUpdateMetadataRequest(request);
 
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocumentException(DOCUMENT_NOT_FOUND));
 
         documentAuthorizationService.requireUpdate(document);
+
+        documentHelper.validateUpdateMetadataRequest(request);
 
         // Nếu document đã bị delete thì không cho cập nhật
         documentHelper.validateDocumentStatus(document);
@@ -385,7 +385,7 @@ public class DocumentServiceImpl implements DocumentService {
         documentHelper.validateFilter(filter);
 
         // Controller đã chặn @PreAuthorize("hasRole('ADMIN')"), nên currentAccessScope()
-        // luôn trả về unrestricted=true ở đây — không truyền null để bypass ABAC.
+        // luôn trả về unrestricted=true ở đây
         return documentRepository.filterDocuments(
                 filter,
                 documentAuthorizationService.currentAccessScope(),

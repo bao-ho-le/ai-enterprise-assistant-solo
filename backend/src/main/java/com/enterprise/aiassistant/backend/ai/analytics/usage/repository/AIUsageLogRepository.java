@@ -32,7 +32,7 @@ public interface AIUsageLogRepository
                    COALESCE(SUM(total_tokens), 0)                     AS totalTokens,
                    COALESCE(SUM(estimated_cost), 0)                   AS cost,
                    COUNT(*) FILTER (WHERE status = 'SUCCESS')         AS successCount,
-                   COUNT(*) FILTER (WHERE status = 'FAILED')          AS failedCount
+                  COUNT(*) FILTER (WHERE status = 'FAILED')          AS failedCount
             FROM ai_usage_logs
             WHERE created_at >= :from
               AND (CAST(:userId AS bigint) IS NULL OR user_id = CAST(:userId AS bigint))

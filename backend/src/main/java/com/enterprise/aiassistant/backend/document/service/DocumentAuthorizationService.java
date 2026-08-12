@@ -106,14 +106,13 @@ public class DocumentAuthorizationService {
                 .collect(Collectors.toSet());
     }
 
-    // Scope để đẩy xuống query list, tránh load toàn bộ document rồi lọc trong bộ nhớ.
-    // ponytail: danh sách shared id load hết vào memory — đủ cho quy mô chia sẻ explicit hiện tại,
-    // đổi sang EXISTS subquery nếu số lượt share trên một user lên tới hàng chục nghìn.
+    // Scope để đẩy xuống repo, lọc bằng query
     @Transactional(readOnly = true)
     public DocumentAccessScope currentAccessScope() {
 
         UserPrincipal principal = currentUserService.getCurrentPrincipal();
 
+        // Không bị chặn việc Get nếu là role Admin hoặc Supervisor
         boolean unrestricted = principal.getRole() == Role.ADMIN
                 || principal.getRole() == Role.SUPERVISOR;
 

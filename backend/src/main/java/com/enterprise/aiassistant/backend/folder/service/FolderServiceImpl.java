@@ -20,6 +20,7 @@ import com.enterprise.aiassistant.backend.folder.helper.FolderAuthorizationHelpe
 import com.enterprise.aiassistant.backend.folder.helper.FolderHelper;
 import com.enterprise.aiassistant.backend.folder.mapper.FolderMapper;
 import com.enterprise.aiassistant.backend.folder.repository.FolderRepository;
+import com.enterprise.aiassistant.backend.user.entity.Permission;
 import com.enterprise.aiassistant.backend.user.entity.Role;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -161,9 +162,7 @@ public class FolderServiceImpl implements FolderService {
 
         folderAuthorizationHelper.requireUpdate(currentUserService.getCurrentPrincipal(), folder);
 
-        if (request.getTargetParentId().equals(folderId)) {
-            throw new FolderException(ErrorCode.FOLDER_CANNOT_MOVE_INTO_ITSELF);
-        }
+        folderHelper.validateNotMoveIntoSelf(folderId, request.getTargetParentId());
 
         Folder targetParent = folderRepository.findById(request.getTargetParentId())
                 .orElseThrow(() -> new FolderException(ErrorCode.FOLDER_PARENT_NOT_FOUND));
@@ -300,6 +299,8 @@ public class FolderServiceImpl implements FolderService {
 
         UserPrincipal principal = currentUserService.getCurrentPrincipal();
 
+        currentUserService.requirePermission(Permission.FOLDER_READ);
+
         return folderRepository.searchDeletedFoldersInScope(
                 (keyword == null || keyword.isBlank()) ? null : keyword.trim(),
                 isUnrestricted(principal),
@@ -312,11 +313,12 @@ public class FolderServiceImpl implements FolderService {
     @Transactional(readOnly = true)
     public Page<FolderResponse> searchFolders(String keyword, Pageable pageable) {
 
-        folderHelper.validateSearchKeyword(keyword);
+        UserPrincipal principal = currentUserService.getCurrentPrincipal();
+        currentUserService.requirePermission(Permission.FOLDER_READ);
 
+        folderHelper.validateSearchKeyword(keyword);
         String safeKeyword = keyword.trim();
 
-        UserPrincipal principal = currentUserService.getCurrentPrincipal();
 
         return folderRepository.searchActiveFoldersInScope(
                 safeKeyword,

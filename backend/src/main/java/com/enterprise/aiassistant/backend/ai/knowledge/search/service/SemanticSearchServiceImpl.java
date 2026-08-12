@@ -14,6 +14,8 @@ import com.enterprise.aiassistant.backend.document.entity.Document;
 import com.enterprise.aiassistant.backend.document.enums.DocumentStatus;
 import com.enterprise.aiassistant.backend.document.repository.DocumentRepository;
 import com.enterprise.aiassistant.backend.document.service.DocumentAuthorizationService;
+import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
+import com.enterprise.aiassistant.backend.user.entity.Permission;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,11 +42,15 @@ public class SemanticSearchServiceImpl implements SemanticSearchService {
 
     private final DocumentAuthorizationService documentAuthorizationService;
 
+    private final CurrentUserService currentUserService;
+
     @Override
     @Transactional(readOnly = true)
     public List<SemanticSearchResult> search(SemanticSearchRequest request) {
 
         searchHelper.validateSearchRequest(request);
+
+        currentUserService.requirePermission(Permission.AI_SEMANTIC_SEARCH);
 
         int topK = searchHelper.resolveTopK(request.getTopK());
 

@@ -80,7 +80,11 @@ public class RolePermissionServiceImpl implements RolePermissionService {
 
         rolePermissionHelper.validateUpdatePermissions(role, permissions);
 
+        // Hibernate flush INSERT trước DELETE trong cùng transaction dù gọi delete trước
+        // trong code, nên phải flush() ngay để DELETE xuống DB trước khi insert lại,
+        // tránh đụng uk_role_permission với chính permission cũ chưa kịp xoá.
         rolePermissionRepository.deleteByRole(role);
+        rolePermissionRepository.flush();
 
         Set<Permission> distinctPermissions = new LinkedHashSet<>(permissions);
 

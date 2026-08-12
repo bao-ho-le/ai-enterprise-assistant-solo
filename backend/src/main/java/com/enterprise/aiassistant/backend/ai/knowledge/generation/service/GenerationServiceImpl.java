@@ -32,6 +32,7 @@ import com.enterprise.aiassistant.backend.ai.analytics.usage.service.AIUsageLogS
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AIConversationException;
 import com.enterprise.aiassistant.backend.document.enums.DocumentStatus;
+import com.enterprise.aiassistant.backend.user.entity.Permission;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -68,6 +69,8 @@ public class GenerationServiceImpl implements GenerationService {
 
         aiConversationHelper.validateConversationId(conversationId);
         generationHelper.validateTriggerRequest(request);
+
+        currentUserService.requirePermission(Permission.AI_DOCUMENT_GENERATION);
 
         AIConversation conversation = conversationRepository
                 .findByIdAndStatus(conversationId, ConversationStatus.ACTIVE)
@@ -154,6 +157,8 @@ public class GenerationServiceImpl implements GenerationService {
     public GenerationConversationDetailResponse getGenerationDetail(Long generationId) {
 
         generationHelper.validateGenerationId(generationId);
+
+        currentUserService.requirePermission(Permission.AI_DOCUMENT_GENERATION);
 
         Generation generation = generationRepository.findById(generationId)
                 .orElseThrow(() -> new AIConversationException(ErrorCode.GENERATION_NOT_FOUND));

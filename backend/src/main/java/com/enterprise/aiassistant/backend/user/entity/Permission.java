@@ -40,6 +40,7 @@ public enum Permission {
     AI_DOCUMENT_QA,
     AI_DOCUMENT_SUMMARY,
     AI_DOCUMENT_GENERATION,
+    AI_SEMANTIC_SEARCH,
 
     // Conversation
     CONVERSATION_CREATE,

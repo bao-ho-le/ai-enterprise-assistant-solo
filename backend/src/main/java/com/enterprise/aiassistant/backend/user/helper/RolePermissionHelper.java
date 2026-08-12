@@ -40,6 +40,7 @@ public class RolePermissionHelper {
             Permission.AI_DOCUMENT_QA,
             Permission.AI_DOCUMENT_SUMMARY,
             Permission.AI_DOCUMENT_GENERATION,
+            Permission.AI_SEMANTIC_SEARCH,
 
             Permission.CONVERSATION_CREATE,
             Permission.CONVERSATION_READ,
@@ -66,6 +67,7 @@ public class RolePermissionHelper {
             Permission.AI_DOCUMENT_QA,
             Permission.AI_DOCUMENT_SUMMARY,
             Permission.AI_DOCUMENT_GENERATION,
+            Permission.AI_SEMANTIC_SEARCH,
 
             Permission.CONVERSATION_CREATE,
             Permission.CONVERSATION_READ,
@@ -85,6 +87,7 @@ public class RolePermissionHelper {
 
             Permission.AI_DOCUMENT_QA,
             Permission.AI_DOCUMENT_SUMMARY,
+            Permission.AI_SEMANTIC_SEARCH,
 
             Permission.CONVERSATION_CREATE,
             Permission.CONVERSATION_READ,

@@ -19,6 +19,7 @@ import com.enterprise.aiassistant.backend.ai.chat.message.repository.AIMessageSo
 import com.enterprise.aiassistant.backend.ai.chat.handler.service.ConversationSummaryChatService;
 import com.enterprise.aiassistant.backend.ai.chat.handler.service.GeneralChatService;
 import com.enterprise.aiassistant.backend.ai.chat.handler.service.SummaryChatService;
+import com.enterprise.aiassistant.backend.ai.chat.intent.enums.Intent;
 import com.enterprise.aiassistant.backend.ai.chat.intent.service.IntentClassifier;
 import com.enterprise.aiassistant.backend.ai.chat.memory.service.ConversationMemoryService;
 import com.enterprise.aiassistant.backend.ai.knowledge.qa.service.DocumentQAService;
@@ -27,6 +28,7 @@ import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.ConversationException;
 import com.enterprise.aiassistant.backend.document.entity.DocumentChunk;
 import com.enterprise.aiassistant.backend.document.repository.DocumentChunkRepository;
+import com.enterprise.aiassistant.backend.user.entity.Permission;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -146,7 +148,10 @@ public class AIMessageServiceImpl implements AIMessageService {
     // DocumentQAService tự lưu assistant message kèm evidence sources.
     private AIMessage answerByIntent(AIConversation conversation, String content) {
 
-        return switch (intentClassifier.classify(content)) {
+        Intent intent = intentClassifier.classify(content);
+        requireIntentPermission(intent);
+
+        return switch (intent) {
             // Rewrite câu hỏi (dùng ConversationMemory để resolve reference như "nó", "loại thứ
             // hai") trước khi retrieval, để embedding/Qdrant nhận standalone question thay vì
             // câu phụ thuộc ngữ cảnh. AIMessage user đã lưu content gốc trước đó, không đổi.
@@ -157,6 +162,18 @@ public class AIMessageServiceImpl implements AIMessageService {
             case CONVERSATION_SUMMARY ->
                     saveAssistantMessage(conversation, conversationSummaryChatService.summarize(conversation, content));
         };
+    }
+
+    // Permission theo đúng khả năng AI được dùng cho tin nhắn này — conversation chỉ có 1
+    // type (DOCUMENT_QA) cho mọi chat turn, intent mới là thứ quyết định nhánh nào thực sự chạy.
+    // CONVERSATION_SUMMARY chưa có permission tương ứng trong enum nên bỏ ngỏ, không tự suy ra.
+    private void requireIntentPermission(Intent intent) {
+
+        switch (intent) {
+            case DOCUMENT_QA -> currentUserService.requirePermission(Permission.AI_DOCUMENT_QA);
+            case SUMMARY -> currentUserService.requirePermission(Permission.AI_DOCUMENT_SUMMARY);
+            case GENERAL_CHAT, CONVERSATION_SUMMARY -> currentUserService.requirePermission(Permission.AI_CHAT);
+        }
     }
 
     private AIMessage saveAssistantMessage(AIConversation conversation, String content) {

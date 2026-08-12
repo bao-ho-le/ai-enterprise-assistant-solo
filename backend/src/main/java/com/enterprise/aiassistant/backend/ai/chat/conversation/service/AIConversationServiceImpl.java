@@ -47,6 +47,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -54,6 +55,16 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class AIConversationServiceImpl implements AIConversationService {
+
+    // Mirror của AIConversationHelper.GENERATION_CONVERSATION_TYPES (private ở đó) —
+    // dùng riêng để quyết định permission theo conversationType lúc tạo.
+    private static final Set<ConversationType> GENERATION_CONVERSATION_TYPES = EnumSet.of(
+            ConversationType.EMAIL_GENERATION,
+            ConversationType.REPORT_GENERATION,
+            ConversationType.SUMMARY_GENERATION,
+            ConversationType.MEETING_MINUTES_GENERATION,
+            ConversationType.FORM_GENERATION
+    );
 
     private final CurrentUserService currentUserService;
 
@@ -95,6 +106,7 @@ public class AIConversationServiceImpl implements AIConversationService {
         aiConversationHelper.validateCreateConversationRequest(request);
 
         currentUserService.requirePermission(Permission.CONVERSATION_CREATE);
+        requireFeaturePermission(request.getConversationType());
 
         AIConversation conversation = aiConversationMapper.toEntity(
                 request,
@@ -197,6 +209,10 @@ public class AIConversationServiceImpl implements AIConversationService {
 
         aiConversationHelper.validateConversationId(conversationId);
 
+        // Restore là đảo ngược của (soft) delete, nên dùng chung CONVERSATION_DELETE,
+        // đồng bộ với softDeleteConversation/hardDeleteConversation.
+        currentUserService.requirePermission(Permission.CONVERSATION_DELETE);
+
         // Distinguish the two failure cases the requirement calls out: a missing
         // conversation (404) vs one that exists but isn't soft-deleted (400).
         AIConversation conversation = conversationRepository.findById(conversationId)
@@ -258,6 +274,9 @@ public class AIConversationServiceImpl implements AIConversationService {
         // Validate request data
         aiConversationHelper.validateAttachRequest(conversationId, request);
 
+        // Attach = sửa đổi context của conversation, cùng nhóm quyền với renameConversation.
+        currentUserService.requirePermission(Permission.CONVERSATION_UPDATE);
+
         // Find active conversation
         AIConversation conversation = getOwnedConversationOrThrow(conversationId, ConversationStatus.ACTIVE);
 
@@ -306,6 +325,8 @@ public class AIConversationServiceImpl implements AIConversationService {
     @Transactional
     public void removeDocument(Long conversationId, Long documentVersionId) {
 
+        currentUserService.requirePermission(Permission.CONVERSATION_UPDATE);
+
         getActiveConversationOrThrow(conversationId);
 
         AIConversationDocument conversationDocument = conversationDocumentRepository
@@ -324,6 +345,8 @@ public class AIConversationServiceImpl implements AIConversationService {
 
         aiConversationHelper.validateConversationId(conversationId);
         aiConversationHelper.validateRecentMessagesLimit(recentMessagesLimit);
+
+        currentUserService.requirePermission(Permission.CONVERSATION_READ);
 
         AIConversation conversation = getOwnedConversationOrThrow(conversationId, ConversationStatus.ACTIVE);
 
@@ -353,6 +376,8 @@ public class AIConversationServiceImpl implements AIConversationService {
             ConversationFilterRequest filter,
             Pageable pageable
     ) {
+        currentUserService.requirePermission(Permission.CONVERSATION_READ);
+
         ConversationStatus status = filter.getStatus() != null ? filter.getStatus() : ConversationStatus.ACTIVE;
 
         return conversationRepository.filterConversations(
@@ -369,6 +394,8 @@ public class AIConversationServiceImpl implements AIConversationService {
             ConversationFilterRequest filter,
             Pageable pageable
     ) {
+        currentUserService.requirePermission(Permission.CONVERSATION_READ);
+
         return conversationRepository.filterDeletedConversations(
                 filter.getConversationType(),
                 currentUserService.getCurrentUserId(),
@@ -381,6 +408,8 @@ public class AIConversationServiceImpl implements AIConversationService {
     public GenerationConversationDetailResponse getGenerationConversationDetail(Long conversationId) {
 
         aiConversationHelper.validateConversationId(conversationId);
+
+        currentUserService.requirePermission(Permission.CONVERSATION_READ);
 
         AIConversation conversation = getOwnedConversationOrThrow(conversationId, ConversationStatus.ACTIVE);
 
@@ -407,6 +436,8 @@ public class AIConversationServiceImpl implements AIConversationService {
     @Override
     public List<ConversationDocumentResponse> getConversationDocuments(Long conversationId) {
 
+        currentUserService.requirePermission(Permission.CONVERSATION_READ);
+
         getActiveConversationOrThrow(conversationId);
 
         return conversationDocumentRepository
@@ -424,6 +455,8 @@ public class AIConversationServiceImpl implements AIConversationService {
             Pageable pageable
     ) {
 
+        currentUserService.requirePermission(Permission.CONVERSATION_READ);
+
         getActiveConversationOrThrow(conversationId);
 
         return generationRepository
@@ -433,6 +466,21 @@ public class AIConversationServiceImpl implements AIConversationService {
 
 
     // Helper
+
+    // Permission theo tính năng AI cụ thể, tách khỏi CONVERSATION_CREATE (RBAC tạo conversation
+    // nói chung). DOCUMENT_QA/generation type mới cần — SEMANTIC_SEARCH, DOCUMENT_INDEXING
+    // không tạo qua đường này (xem AIConversationHelper.GENERATION_CONVERSATION_TYPES) nên bỏ qua.
+    private void requireFeaturePermission(ConversationType conversationType) {
+
+        if (conversationType == ConversationType.DOCUMENT_QA) {
+            currentUserService.requirePermission(Permission.AI_DOCUMENT_QA);
+            return;
+        }
+
+        if (GENERATION_CONVERSATION_TYPES.contains(conversationType)) {
+            currentUserService.requirePermission(Permission.AI_DOCUMENT_GENERATION);
+        }
+    }
 
     // Mọi đường vào conversation đều đi qua đây nên ownership check đặt ở một chỗ duy nhất.
     private void getActiveConversationOrThrow(Long conversationId) {
@@ -454,7 +502,7 @@ public class AIConversationServiceImpl implements AIConversationService {
 
         List<Document> documents = versions.stream()
                 .map(DocumentVersion::getDocument)
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .toList();
 
         Set<Long> readableDocumentIds =
