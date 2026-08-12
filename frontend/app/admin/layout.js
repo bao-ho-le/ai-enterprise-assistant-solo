@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   Building2,
   FileText,
-  LayoutDashboard,
   ShieldCheck,
   Share2,
   Trash2,
@@ -17,7 +16,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { isAdmin } from "@/lib/permissions";
 
 const ADMIN_LINKS = [
-  { href: "/admin/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/admin/users", label: "Users", Icon: Users },
   { href: "/admin/departments", label: "Departments", Icon: Building2 },
   { href: "/admin/documents", label: "Documents", Icon: FileText },

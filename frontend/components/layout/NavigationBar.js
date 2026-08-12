@@ -128,7 +128,7 @@ export default function NavigationBar() {
                 </Link>
                 {isAdmin(user) && (
                   <Link
-                    href="/admin/dashboard"
+                    href="/admin/users"
                     role="menuitem"
                     onClick={() => setAccountOpen(false)}
                     className="flex items-center gap-2 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-bg-elevated"

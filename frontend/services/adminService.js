@@ -2,12 +2,6 @@ import { apiClient } from "@/lib/apiClient";
 
 // Mọi endpoint /admin/** đều bị backend chặn ROLE_ADMIN — frontend chỉ ẩn UI, không phải hàng rào.
 
-// ===================== Dashboard =====================
-
-export function getAdminDashboard(signal) {
-  return apiClient.get("/admin/dashboard", { signal });
-}
-
 // ===================== Users =====================
 
 // GET /admin/users -> Page<UserResponse>

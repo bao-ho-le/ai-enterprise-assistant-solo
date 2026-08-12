@@ -282,6 +282,10 @@ public class DocumentServiceImpl implements DocumentService {
         DocumentVersion selectedVersion = versionRepository.findById(versionId)
                 .orElseThrow(() -> new DocumentException(ErrorCode.DOCUMENT_VERSION_NOT_FOUND));
 
+        if (selectedVersion.getDocument() == null
+                || !selectedVersion.getDocument().getId().equals(documentId)) {
+            throw new DocumentException(ErrorCode.DOCUMENT_VERSION_NOT_FOUND);
+        }
 
         FileEntity file = selectedVersion.getFile();
 
