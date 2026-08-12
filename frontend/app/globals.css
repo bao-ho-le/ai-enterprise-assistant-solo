@@ -327,6 +327,15 @@ body {
   background-color: var(--bg-elevated);
 }
 
+/* Compact inline-edit select for admin table rows (users: department/role) —
+   same base as .select-field but a shorter height and smaller text. */
+.select-field-sm {
+  height: 1.75rem;
+  padding: 0 1.75rem 0 0.5rem;
+  font-size: 0.75rem;
+  background-position: right 0.5rem center;
+}
+
 .select-field-ghost-xs:focus {
   outline: none;
   color: var(--text-primary);
@@ -372,6 +381,12 @@ body {
 .badge-neutral {
   color: var(--text-secondary);
   background-color: var(--bg-elevated);
+}
+
+.badge-accent {
+  color: var(--accent);
+  background-color: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .nav-link-active {

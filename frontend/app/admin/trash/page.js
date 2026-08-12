@@ -104,10 +104,12 @@ export default function AdminTrashPage() {
         <table className="w-full min-w-[1000px] border-collapse">
           <thead>
             <tr className="border-b border-border-default">
-              {["Name", "Type", "Owner", "Department", "Deleted By", "Deleted At", ""].map((h, i) => (
+              {["Name", "Type", "Owner", "Department", "Deleted By", "Deleted At", "Actions"].map((h, i, arr) => (
                 <th
                   key={h || i}
-                  className="sticky top-0 z-10 bg-bg-primary whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary shadow-[inset_0_-1px_0_var(--border-default)]"
+                  className={`sticky top-0 z-10 bg-bg-primary whitespace-nowrap px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-primary ${
+                    i === arr.length - 1 ? "text-right" : "text-left"
+                  }`}
                 >
                   {h}
                 </th>
@@ -131,30 +133,34 @@ export default function AdminTrashPage() {
                   key={`${item.type}-${item.itemId}`}
                   className="border-b border-border-default transition-colors hover:bg-bg-elevated/50"
                 >
-                  <td className="px-4 py-2">
-                    <div className="flex items-center gap-2.5">
+                  <td className="px-4 py-1">
+                    <div className="flex items-center gap-3">
                       {item.type === "DOCUMENT" ? (
-                        <FileText className="h-4 w-4 shrink-0 text-text-muted" />
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-bg-elevated">
+                          <FileText className="h-3.5 w-3.5 text-text-muted" />
+                        </span>
                       ) : (
-                        <FolderIcon className="h-4 w-4 shrink-0 text-amber-400" />
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-amber-500/10">
+                          <FolderIcon className="h-3.5 w-3.5 text-amber-400" />
+                        </span>
                       )}
                       <span className="text-xs font-medium text-text-primary">{item.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-1">
                     <span className="badge badge-neutral">{item.type}</span>
                   </td>
-                  <td className="px-4 py-2 text-xs text-text-secondary">{item.ownerName ?? "—"}</td>
-                  <td className="px-4 py-2 text-xs text-text-secondary">
+                  <td className="px-4 py-1 text-xs text-text-secondary">{item.ownerName ?? "—"}</td>
+                  <td className="px-4 py-1 text-xs text-text-secondary">
                     {item.departmentName ?? "—"}
                   </td>
-                  <td className="px-4 py-2 text-xs text-text-secondary">
+                  <td className="px-4 py-1 text-xs text-text-secondary">
                     {item.deletedByName ?? "—"}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-xs text-text-secondary">
+                  <td className="whitespace-nowrap px-4 py-1 text-xs text-text-secondary">
                     {formatDateTime(item.deletedAt)}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-right">
+                  <td className="whitespace-nowrap px-4 py-1 text-right">
                     <button
                       type="button"
                       className="btn-ghost p-1.5"

@@ -182,11 +182,13 @@ export default function AdminDocumentsPage() {
                 "Size",
                 "Uploaded",
                 "Processing",
-                "",
-              ].map((h, i) => (
+                "Actions",
+              ].map((h, i, arr) => (
                 <th
                   key={h || i}
-                  className="sticky top-0 z-10 bg-bg-primary whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary shadow-[inset_0_-1px_0_var(--border-default)]"
+                  className={`sticky top-0 z-10 bg-bg-primary whitespace-nowrap px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-primary ${
+                    i === arr.length - 1 ? "text-right" : "text-left"
+                  }`}
                 >
                   {h}
                 </th>
@@ -214,33 +216,37 @@ export default function AdminDocumentsPage() {
                     key={doc.id}
                     className="border-b border-border-default transition-colors hover:bg-bg-elevated/50"
                   >
-                    <td className="px-4 py-2">
+                    <td className="w-full px-4 py-1">
                       <div className="flex items-center gap-3">
                         <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${bg}`}>
                           <ExtIcon className={`h-3.5 w-3.5 ${color}`} />
                         </span>
-                        <span className="text-xs font-medium text-text-primary">{doc.title}</span>
+                        <div className="min-w-0">
+                          <span className="block truncate text-xs font-medium text-text-primary" title={doc.title}>
+                            {doc.title}
+                          </span>
+                        </div>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-xs text-text-secondary">
+                    <td className="whitespace-nowrap px-4 py-1 text-xs text-text-secondary">
                       {doc.ownerName ?? "—"}
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-1">
                       <span className="badge badge-neutral">{doc.departmentName ?? "—"}</span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-xs uppercase text-text-secondary">
+                    <td className="whitespace-nowrap px-4 py-1 text-xs uppercase text-text-secondary">
                       {documentTypeLabel(doc.documentType)}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-xs text-text-secondary">
+                    <td className="whitespace-nowrap px-4 py-1 text-xs text-text-secondary">
                       {formatBytes(doc.size)}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-xs text-text-secondary">
+                    <td className="whitespace-nowrap px-4 py-1 text-xs text-text-secondary">
                       {formatDateTime(doc.uploadTime)}
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-1">
                       <span className={`badge ${processing.badge}`}>{processing.label}</span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-right">
+                    <td className="whitespace-nowrap px-4 py-1 text-right">
                       {canManageAccess && (
                         <button
                           type="button"

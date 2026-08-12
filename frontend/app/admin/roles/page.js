@@ -99,7 +99,7 @@ export default function AdminRolesPage() {
 
       {!loading && !error && (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[16rem_1fr]">
-          <aside className="flex flex-col gap-2">
+          <aside className="flex flex-col gap-2 self-start lg:sticky lg:top-0">
             {roles.map((role) => (
               <button
                 key={role.role}

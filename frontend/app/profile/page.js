@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CalendarDays, Building2, User } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { updateProfile } from "@/services/userService";
 import { ApiError } from "@/lib/apiClient";
@@ -42,13 +43,28 @@ export default function ProfilePage() {
 
       <div className="card mt-6 p-6">
         <div className="flex items-center gap-4">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-bg-elevated text-lg font-medium text-text-secondary">
+          <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-bg-elevated text-xl font-semibold text-text-primary ring-2 ring-accent/30">
             {getInitials(user?.fullName)}
           </span>
-          <div>
-            <p className="text-sm font-medium text-text-primary">{user?.username}</p>
-            <p className="text-sm text-text-muted">
-              {user?.role} · Joined {formatDateTime(user?.createdAt)}
+          <div className="min-w-0">
+            <p className="flex flex-wrap items-center gap-1.5 text-xs text-text-muted">
+              <User className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                Username:{" "}
+                <span className="text-text-secondary">{user?.username}</span>
+              </span>
+              <span className="badge badge-accent">{user?.role}</span>
+            </p>
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-text-muted">
+              <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+              Joined {formatDateTime(user?.createdAt)}
+            </p>
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-text-muted">
+              <Building2 className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                Department:{" "}
+                <span className="text-text-secondary">{user?.departmentName || "—"}</span>
+              </span>
             </p>
           </div>
         </div>

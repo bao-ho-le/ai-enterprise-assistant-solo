@@ -222,7 +222,7 @@ export default function AdminAIUsagePage() {
               {["Time", "User", "Type", "Model", "Input", "Output", "Total", "Status"].map((h) => (
                 <th
                   key={h}
-                  className="sticky top-0 z-10 bg-bg-primary whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary shadow-[inset_0_-1px_0_var(--border-default)]"
+                  className="sticky top-0 z-10 bg-bg-primary whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary"
                 >
                   {h}
                 </th>

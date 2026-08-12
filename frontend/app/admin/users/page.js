@@ -213,10 +213,12 @@ export default function AdminUsersPage() {
         <table className="w-full min-w-[1000px] border-collapse">
           <thead>
             <tr className="border-b border-border-default">
-              {["Name", "Email", "Department", "Role", "Status", "Created", ""].map((h, i) => (
+              {["Name", "Email", "Department", "Role", "Status", "Created", "Actions"].map((h, i, arr) => (
                 <th
                   key={h || i}
-                  className="sticky top-0 z-10 bg-bg-primary px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary shadow-[inset_0_-1px_0_var(--border-default)]"
+                  className={`sticky top-0 z-10 bg-bg-primary px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-primary ${
+                    i === arr.length - 1 ? "text-right" : "text-left"
+                  }`}
                 >
                   {h}
                 </th>
@@ -240,19 +242,19 @@ export default function AdminUsersPage() {
                   key={u.id}
                   className="border-b border-border-default transition-colors hover:bg-bg-elevated/50"
                 >
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-1">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-bg-elevated text-[10px] font-medium text-text-secondary">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg-elevated text-[10px] font-medium text-text-secondary">
                         {getInitials(u.fullName)}
                       </span>
                       <span className="text-xs font-medium text-text-primary">{u.fullName}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-xs text-text-secondary">{u.email}</td>
-                  <td className="w-48 px-4 py-2">
+                  <td className="px-4 py-1 text-xs text-text-secondary">{u.email}</td>
+                  <td className="w-48 px-4 py-1">
                     {canChangeDepartment ? (
                       <select
-                        className="select-field"
+                        className="select-field select-field-sm"
                         value={u.departmentId ?? ""}
                         aria-label={`Department of ${u.fullName}`}
                         onChange={(e) =>
@@ -277,10 +279,10 @@ export default function AdminUsersPage() {
                       <span className="badge badge-neutral">{u.departmentName ?? "—"}</span>
                     )}
                   </td>
-                  <td className="w-36 px-4 py-2">
+                  <td className="w-36 px-4 py-1">
                     {canAssignRole && u.id !== currentUser?.id ? (
                       <select
-                        className="select-field"
+                        className="select-field select-field-sm"
                         value={u.role}
                         aria-label={`Role of ${u.fullName}`}
                         onChange={(e) =>
@@ -297,7 +299,7 @@ export default function AdminUsersPage() {
                       <span className={`badge ${roleBadgeClass(u.role)}`}>{u.role}</span>
                     )}
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-1">
                     {canToggle && u.id !== currentUser?.id ? (
                       <button
                         type="button"
@@ -317,10 +319,10 @@ export default function AdminUsersPage() {
                       </span>
                     )}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-xs text-text-secondary">
+                  <td className="whitespace-nowrap px-4 py-1 text-xs text-text-secondary">
                     {formatDateTime(u.createdAt)}
                   </td>
-                  <td className="px-4 py-2 text-right">
+                  <td className="px-4 py-1 text-right">
                     {canDelete && u.id !== currentUser?.id && (
                       <button
                         type="button"

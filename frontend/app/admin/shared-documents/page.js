@@ -139,11 +139,13 @@ export default function AdminSharedDocumentsPage() {
         <table className="w-full min-w-[1000px] border-collapse">
           <thead>
             <tr className="border-b border-border-default">
-              {["Document", "Owner", "Department", "Shared With", "Shared By", "Shared At", ""].map(
-                (h, i) => (
+              {["Document", "Owner", "Department", "Shared With", "Shared By", "Shared At", "Actions"].map(
+                (h, i, arr) => (
                   <th
                     key={h || i}
-                    className="sticky top-0 z-10 bg-bg-primary whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary shadow-[inset_0_-1px_0_var(--border-default)]"
+                    className={`sticky top-0 z-10 bg-bg-primary whitespace-nowrap px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-primary ${
+                      i === arr.length - 1 ? "text-right" : "text-left"
+                    }`}
                   >
                     {h}
                   </th>
@@ -168,24 +170,24 @@ export default function AdminSharedDocumentsPage() {
                   key={share.documentAccessId}
                   className="border-b border-border-default transition-colors hover:bg-bg-elevated/50"
                 >
-                  <td className="px-4 py-2 text-xs font-medium text-text-primary">
+                  <td className="px-4 py-1 text-xs font-medium text-text-primary">
                     {share.documentTitle}
                   </td>
-                  <td className="px-4 py-2 text-xs text-text-secondary">{share.ownerName ?? "—"}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-1 text-xs text-text-secondary">{share.ownerName ?? "—"}</td>
+                  <td className="px-4 py-1">
                     <span className="badge badge-neutral">{share.departmentName ?? "—"}</span>
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-1">
                     <p className="text-xs font-medium text-text-primary">{share.sharedUserName}</p>
                     <p className="text-xs text-text-muted">{share.sharedUserEmail}</p>
                   </td>
-                  <td className="px-4 py-2 text-xs text-text-secondary">
+                  <td className="px-4 py-1 text-xs text-text-secondary">
                     {share.grantedByName ?? "—"}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-xs text-text-secondary">
+                  <td className="whitespace-nowrap px-4 py-1 text-xs text-text-secondary">
                     {formatDateTime(share.sharedAt)}
                   </td>
-                  <td className="px-4 py-2 text-right">
+                  <td className="px-4 py-1 text-right">
                     {canRevoke && (
                       <button
                         type="button"

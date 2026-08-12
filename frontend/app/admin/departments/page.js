@@ -169,10 +169,12 @@ export default function AdminDepartmentsPage() {
           <table className="w-full min-w-[900px] border-collapse">
             <thead>
               <tr className="border-b border-border-default">
-                {["Name", "Members", "Created", ""].map((h, i) => (
+                {["Name", "Members", "Created", "Actions"].map((h, i, arr) => (
                   <th
                     key={h || i}
-                    className="sticky top-0 z-10 bg-bg-primary px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary shadow-[inset_0_-1px_0_var(--border-default)]"
+                    className={`sticky top-0 z-10 bg-bg-primary px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-primary ${
+                      i === arr.length - 1 ? "text-right" : "text-left"
+                    }`}
                   >
                     {h}
                   </th>
@@ -197,20 +199,20 @@ export default function AdminDepartmentsPage() {
                     className="cursor-pointer border-b border-border-default transition-colors hover:bg-bg-elevated/50"
                     onDoubleClick={() => openDetail(d.departmentId)}
                   >
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-1">
                       <span className="text-xs font-medium text-text-primary">{d.name}</span>
                       {d.description && (
                         <p className="mt-0.5 line-clamp-1 text-xs text-text-muted">{d.description}</p>
                       )}
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-1">
                       <span className="badge badge-neutral">{d.memberCount}</span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-xs text-text-secondary">
+                    <td className="whitespace-nowrap px-4 py-1 text-xs text-text-secondary">
                       {formatDateTime(d.createdAt)}
                     </td>
                     <td
-                      className="px-4 py-2 text-right"
+                      className="px-4 py-1 text-right"
                       onClick={(e) => e.stopPropagation()}
                       onDoubleClick={(e) => e.stopPropagation()}
                     >
