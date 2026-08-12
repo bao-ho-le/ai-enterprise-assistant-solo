@@ -1,7 +1,7 @@
 // Thin fetch wrapper: base URL from env, ErrorResponseDto -> ApiError, JSON + raw (blob) support.
 // Every request in the app goes through here (via services/*), never fetch() in components.
 
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "@/lib/auth";
+import { getAccessToken, setTokens, clearTokens } from "@/lib/auth";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
@@ -40,15 +40,16 @@ async function toError(res) {
 
 // Single-flight refresh: concurrent 401s share one in-flight refresh call
 // instead of each firing their own. Bare fetch (not apiClient) to avoid
-// importing authService, which itself imports apiClient.
+// importing authService, which itself imports apiClient. No body/token to
+// send — the refresh token travels as an httpOnly cookie the browser attaches
+// automatically via credentials: "include".
 let refreshPromise = null;
 
 function refreshAccessToken() {
   if (!refreshPromise) {
     refreshPromise = fetch(`${BASE_URL}/auth/refresh-token`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken: getRefreshToken() }),
+      credentials: "include",
     })
       .then(async (res) => {
         if (!res.ok) throw await toError(res);
@@ -69,9 +70,10 @@ async function request(path, { method = "GET", params, body, headers, signal, _r
     body,
     headers: token ? { ...headers, Authorization: `Bearer ${token}` } : headers,
     signal,
+    credentials: "include",
   });
   if (res.status === 401 && !path.startsWith("/auth/")) {
-    if (!_retried && getRefreshToken()) {
+    if (!_retried) {
       try {
         await refreshAccessToken();
         return request(path, { method, params, body, headers, signal, _retried: true });

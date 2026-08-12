@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "@/lib/auth";
+import { getAccessToken, setTokens, clearTokens } from "@/lib/auth";
 import * as authService from "@/services/authService";
 import { getMe } from "@/services/userService";
 
@@ -56,11 +56,10 @@ export default function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(async () => {
-    const refreshToken = getRefreshToken();
     clearTokens();
     setUser(null);
     router.replace("/login");
-    if (refreshToken) authService.logout(refreshToken).catch(() => {});
+    authService.logout().catch(() => {});
   }, [router]);
 
   const value = { user, loading, login, register, logout, setUser };

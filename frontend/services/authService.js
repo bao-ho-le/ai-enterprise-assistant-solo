@@ -10,7 +10,7 @@ export function register({ userName, email, password, fullName }) {
   return apiClient.postJson("/auth/register", { userName, email, password, fullName });
 }
 
-// POST /auth/logout -> revokes the refresh token
-export function logout(refreshToken) {
-  return apiClient.postJson("/auth/logout", { refreshToken });
+// POST /auth/logout -> revokes the refresh token (sent as an httpOnly cookie)
+export function logout() {
+  return apiClient.postJson("/auth/logout");
 }
