@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2, Share2, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { hasPermission } from "@/lib/permissions";
-import { getMyDepartment } from "@/services/departmentService";
+import { getDepartmentDetail, getDepartments } from "@/services/departmentService";
 import {
   getDocumentShares,
   revokeDocumentShare,
@@ -12,19 +12,20 @@ import {
 } from "@/services/documentService";
 import { formatDateTimeSlash } from "@/utils/format";
 
-// Chia sẻ tài liệu cho user cụ thể. Backend chỉ cấp READ/DOWNLOAD cho người được chia sẻ
-// và tự chặn nếu người gọi không có DOCUMENT_MANAGE_ACCESS trên chính tài liệu đó.
-export default function DocumentSharePanel({ documentId, onToast }) {
+// Chia sẻ tài liệu cho user cụ thể. Chỉ chủ sở hữu tài liệu mới thấy form chia sẻ/thu hồi —
+// backend cũng tự chặn nếu người gọi không có DOCUMENT_MANAGE_ACCESS trên chính tài liệu đó.
+export default function DocumentSharePanel({ documentId, ownerId, onToast }) {
   const { user } = useAuth();
 
   const [shares, setShares] = useState([]);
   const [members, setMembers] = useState([]);
-  const [targetUserId, setTargetUserId] = useState("");
+  const [targetUserIds, setTargetUserIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const canManageAccess = hasPermission(user, "DOCUMENT_MANAGE_ACCESS");
+  const isOwner = ownerId != null && user?.id === ownerId;
+  const canManageAccess = isOwner && hasPermission(user, "DOCUMENT_MANAGE_ACCESS");
 
   const load = useCallback(() => {
     setLoading(true);
@@ -37,19 +38,34 @@ export default function DocumentSharePanel({ documentId, onToast }) {
 
   useEffect(load, [load]);
 
-  // Người nhận chia sẻ lấy từ department của chính user — API user thường được phép gọi.
+  // Người nhận chia sẻ: toàn bộ user trong tổ chức, gom theo từng department —
+  // không có endpoint "list all users" nào mà user thường được phép gọi.
   useEffect(() => {
     if (!canManageAccess) return;
-    getMyDepartment()
-      .then((detail) => setMembers(detail?.members ?? []))
+    getDepartments({ size: 200 })
+      .then(async (page) => {
+        const departments = page?.content ?? [];
+        const details = await Promise.all(
+          departments.map((d) => getDepartmentDetail(d.departmentId).catch(() => null))
+        );
+        setMembers(
+          details.flatMap(
+            (detail, i) =>
+              detail?.members?.map((member) => ({
+                ...member,
+                departmentName: departments[i].name,
+              })) ?? []
+          )
+        );
+      })
       .catch(() => setMembers([]));
   }, [canManageAccess]);
 
   const submit = async () => {
     setBusy(true);
     try {
-      await shareDocument(documentId, Number(targetUserId));
-      setTargetUserId("");
+      await Promise.all(targetUserIds.map((id) => shareDocument(documentId, Number(id))));
+      setTargetUserIds([]);
       onToast?.({ type: "success", text: "Đã chia sẻ tài liệu" });
       load();
     } catch (e) {
@@ -73,6 +89,10 @@ export default function DocumentSharePanel({ documentId, onToast }) {
     (member) =>
       member.userId !== user?.id && !shares.some((share) => share.sharedUserId === member.userId)
   );
+  const candidatesByDepartment = candidates.reduce((acc, member) => {
+    (acc[member.departmentName] ??= []).push(member);
+    return acc;
+  }, {});
 
   return (
     <div className="card p-6">
@@ -84,26 +104,31 @@ export default function DocumentSharePanel({ documentId, onToast }) {
       </div>
 
       {canManageAccess && (
-        <div className="mb-4 flex items-end gap-2">
-          <div className="flex-1">
-            <label className="label-text">Chia sẻ cho</label>
-            <select
-              className="select-field"
-              value={targetUserId}
-              onChange={(e) => setTargetUserId(e.target.value)}
-            >
-              <option value="">Chọn người dùng…</option>
-              {candidates.map((member) => (
-                <option key={member.userId} value={member.userId}>
-                  {member.fullName} ({member.email})
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="mb-4 flex flex-col gap-2">
+          <label className="label-text">Chia sẻ cho (giữ Ctrl/Cmd để chọn nhiều)</label>
+          <select
+            multiple
+            size={Math.min(6, Math.max(candidates.length, 3))}
+            className="w-full rounded-lg border border-border-subtle bg-bg-primary p-2 text-sm text-text-primary"
+            value={targetUserIds}
+            onChange={(e) =>
+              setTargetUserIds(Array.from(e.target.selectedOptions, (o) => o.value))
+            }
+          >
+            {Object.entries(candidatesByDepartment).map(([departmentName, groupMembers]) => (
+              <optgroup key={departmentName} label={departmentName}>
+                {groupMembers.map((member) => (
+                  <option key={member.userId} value={member.userId}>
+                    {member.fullName} ({member.email})
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
           <button
             type="button"
-            className="btn-primary py-2 px-4 text-sm"
-            disabled={!targetUserId || busy}
+            className="btn-primary self-end py-2 px-4 text-sm"
+            disabled={targetUserIds.length === 0 || busy}
             onClick={submit}
           >
             {busy ? "Đang chia sẻ…" : "Chia sẻ"}

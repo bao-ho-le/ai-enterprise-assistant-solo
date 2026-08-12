@@ -196,7 +196,7 @@ export default function DocumentDetailView({ documentId }) {
       </div>
 
       <div className="mb-6">
-        <DocumentSharePanel documentId={documentId} onToast={setToast} />
+        <DocumentSharePanel documentId={documentId} ownerId={info.ownerId} onToast={setToast} />
       </div>
 
       {/* Version History */}
