@@ -71,7 +71,7 @@
 | Nguyễn Ngọc Huy | Report Generation (sinh báo cáo) |
 | Trần Nhật Nguyên | Summary Generation (tóm tắt), Email Generation (soạn email) |
 
-### Giai đoạn 5 — Authentication, Permission & Admin (05/08 – 11/08/2026) 🔄 Đang thực hiện
+### Giai đoạn 5 — Authentication, Permission & Admin (05/08 – 11/08/2026) ✅ Đã xong
 
 | Thành viên | Công việc phụ trách |
 | --- | --- |
@@ -79,7 +79,7 @@
 | Lê Võ | Module Permission: thiết kế và triển khai cơ chế phân quyền · Quản lý quyền truy cập tài liệu theo User/Department |
 | Trần Nhật Nguyên | Module Authentication: đăng nhập, xác thực người dùng, JWT/Refresh Token · Hỗ trợ triển khai Permission |
 
-### Giai đoạn 6 — Hoàn thiện, tích hợp & kiểm thử (12/08 – 18/08/2026) ⏳ Dự kiến
+### Giai đoạn 6 — Hoàn thiện, tích hợp & kiểm thử (12/08 – 18/08/2026) ✅ Đã xong
 
 | Thành viên | Công việc phụ trách |
 | --- | --- |
