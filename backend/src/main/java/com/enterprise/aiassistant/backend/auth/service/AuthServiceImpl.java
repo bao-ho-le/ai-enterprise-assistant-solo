@@ -10,7 +10,7 @@ import com.enterprise.aiassistant.backend.auth.entity.RefreshToken;
 import com.enterprise.aiassistant.backend.auth.security.UserPrincipal;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthenticationException;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import com.enterprise.aiassistant.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

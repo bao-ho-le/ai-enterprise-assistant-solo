@@ -32,7 +32,7 @@ import com.enterprise.aiassistant.backend.ai.analytics.usage.service.AIUsageLogS
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AIConversationException;
 import com.enterprise.aiassistant.backend.document.enums.DocumentStatus;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

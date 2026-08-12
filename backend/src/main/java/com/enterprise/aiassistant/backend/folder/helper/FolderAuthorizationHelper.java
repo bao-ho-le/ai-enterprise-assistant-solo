@@ -4,8 +4,8 @@ import com.enterprise.aiassistant.backend.auth.security.UserPrincipal;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthorizationException;
 import com.enterprise.aiassistant.backend.folder.entity.Folder;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import org.springframework.stereotype.Component;
 
 // Luật ABAC thuần cho Folder — không chạm repository.

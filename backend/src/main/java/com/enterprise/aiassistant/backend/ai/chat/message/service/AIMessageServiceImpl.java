@@ -28,7 +28,7 @@ import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.ConversationException;
 import com.enterprise.aiassistant.backend.document.entity.DocumentChunk;
 import com.enterprise.aiassistant.backend.document.repository.DocumentChunkRepository;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;

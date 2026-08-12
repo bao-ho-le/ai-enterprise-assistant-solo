@@ -1,7 +1,7 @@
 package com.enterprise.aiassistant.backend.auth.security;
 
-import com.enterprise.aiassistant.backend.user.entity.Permission;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

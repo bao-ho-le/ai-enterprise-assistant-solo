@@ -6,7 +6,7 @@ import com.enterprise.aiassistant.backend.department.entity.Department;
 import com.enterprise.aiassistant.backend.document.dto.DocumentAccessScope;
 import com.enterprise.aiassistant.backend.document.helper.DocumentAuthorizationHelper;
 import com.enterprise.aiassistant.backend.document.repository.DocumentAccessRepository;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

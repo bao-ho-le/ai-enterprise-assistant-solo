@@ -6,7 +6,7 @@ import com.enterprise.aiassistant.backend.admin.user.dto.request.AssignRoleReque
 import com.enterprise.aiassistant.backend.admin.user.dto.request.ChangeDepartmentRequest;
 import com.enterprise.aiassistant.backend.admin.user.service.AdminUserService;
 import com.enterprise.aiassistant.backend.user.dto.response.UserResponse;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,7 +1,7 @@
 package com.enterprise.aiassistant.backend.user.mapper;
 
 import com.enterprise.aiassistant.backend.user.dto.response.UserResponse;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import org.springframework.stereotype.Component;
 

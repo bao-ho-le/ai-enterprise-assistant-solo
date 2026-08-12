@@ -5,7 +5,7 @@ import com.enterprise.aiassistant.backend.document.entity.Document;
 import com.enterprise.aiassistant.backend.document.service.DocumentAuthorizationService;
 import java.util.Set;
 import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.dto.request.*;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.dto.response.*;
 import com.enterprise.aiassistant.backend.ai.chat.conversation.entity.AIConversation;

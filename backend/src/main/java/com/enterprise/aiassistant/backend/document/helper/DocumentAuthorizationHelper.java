@@ -2,8 +2,8 @@ package com.enterprise.aiassistant.backend.document.helper;
 
 import com.enterprise.aiassistant.backend.auth.security.UserPrincipal;
 import com.enterprise.aiassistant.backend.document.entity.Document;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import org.springframework.stereotype.Component;
 
 // Luật ABAC thuần cho Document — không chạm repository.

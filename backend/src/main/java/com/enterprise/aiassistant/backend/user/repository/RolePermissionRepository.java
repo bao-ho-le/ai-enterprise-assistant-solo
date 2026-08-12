@@ -1,7 +1,7 @@
 package com.enterprise.aiassistant.backend.user.repository;
 
-import com.enterprise.aiassistant.backend.user.entity.Permission;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import com.enterprise.aiassistant.backend.user.entity.RolePermission;
 import org.springframework.data.jpa.repository.JpaRepository;
 

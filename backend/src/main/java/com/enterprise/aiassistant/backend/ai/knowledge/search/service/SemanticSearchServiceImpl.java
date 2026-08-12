@@ -15,7 +15,7 @@ import com.enterprise.aiassistant.backend.document.enums.DocumentStatus;
 import com.enterprise.aiassistant.backend.document.repository.DocumentRepository;
 import com.enterprise.aiassistant.backend.document.service.DocumentAuthorizationService;
 import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

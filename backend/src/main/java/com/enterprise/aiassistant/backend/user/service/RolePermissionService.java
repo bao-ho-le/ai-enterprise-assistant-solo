@@ -1,7 +1,7 @@
 package com.enterprise.aiassistant.backend.user.service;
 
-import com.enterprise.aiassistant.backend.user.entity.Permission;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 
 import java.util.Collection;
 import java.util.Map;

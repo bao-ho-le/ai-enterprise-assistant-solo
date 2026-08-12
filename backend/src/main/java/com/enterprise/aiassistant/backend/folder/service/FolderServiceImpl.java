@@ -20,8 +20,8 @@ import com.enterprise.aiassistant.backend.folder.helper.FolderAuthorizationHelpe
 import com.enterprise.aiassistant.backend.folder.helper.FolderHelper;
 import com.enterprise.aiassistant.backend.folder.mapper.FolderMapper;
 import com.enterprise.aiassistant.backend.folder.repository.FolderRepository;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -7,7 +7,7 @@ import com.enterprise.aiassistant.backend.document.repository.DocumentRepository
 import com.enterprise.aiassistant.backend.folder.entity.Folder;
 import com.enterprise.aiassistant.backend.folder.enums.FolderStatus;
 import com.enterprise.aiassistant.backend.folder.repository.FolderRepository;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;

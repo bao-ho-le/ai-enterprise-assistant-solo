@@ -10,8 +10,8 @@ import com.enterprise.aiassistant.backend.common.exception.business_exception.Au
 import com.enterprise.aiassistant.backend.common.exception.business_exception.UserException;
 import com.enterprise.aiassistant.backend.department.service.DepartmentService;
 import com.enterprise.aiassistant.backend.user.dto.response.UserResponse;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
-import com.enterprise.aiassistant.backend.user.entity.Role;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Role;
 import com.enterprise.aiassistant.backend.user.entity.User;
 import com.enterprise.aiassistant.backend.user.mapper.UserMapper;
 import com.enterprise.aiassistant.backend.user.repository.UserRepository;

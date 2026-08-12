@@ -13,7 +13,7 @@ import com.enterprise.aiassistant.backend.auth.service.CurrentUserService;
 import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthorizationException;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.GeneratedException;
-import com.enterprise.aiassistant.backend.user.entity.Permission;
+import com.enterprise.aiassistant.backend.user.enums.Permission;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
