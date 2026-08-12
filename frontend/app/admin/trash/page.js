@@ -1,13 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { FileText, FolderIcon, RotateCcw, Search, Trash2 } from "lucide-react";
+import { FileText, FolderIcon, RotateCcw, Search } from "lucide-react";
 import Toast from "@/components/ui/Toast";
 import AdminTableState from "@/features/admin/components/AdminTableState";
-import ConfirmDialog from "@/features/admin/components/ConfirmDialog";
+import Pagination from "@/features/document/components/Pagination";
 import {
   getAdminTrash,
-  permanentlyDeleteTrashFolder,
   restoreTrashDocument,
   restoreTrashFolder,
 } from "@/services/adminService";
@@ -18,6 +17,7 @@ const PAGE_SIZE = 20;
 export default function AdminTrashPage() {
   const [items, setItems] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [page, setPage] = useState(0);
   const [keyword, setKeyword] = useState("");
   const [type, setType] = useState("");
@@ -25,7 +25,6 @@ export default function AdminTrashPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState(null);
-  const [pendingPurge, setPendingPurge] = useState(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -39,6 +38,7 @@ export default function AdminTrashPage() {
       .then((data) => {
         setItems(data.content ?? []);
         setTotalPages(data.totalPages ?? 0);
+        setTotalElements(data.totalElements ?? 0);
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -65,15 +65,8 @@ export default function AdminTrashPage() {
 
   return (
     <main className="flex-1 mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
-      <div className="mb-5">
-        <h1 className="text-lg font-semibold text-text-primary">Trash</h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Tài liệu và thư mục đã xoá mềm. File gốc vẫn được giữ trong storage.
-        </p>
-      </div>
-
       <div className="filter-toolbar mb-4">
-        <div className="filter-toolbar-item filter-toolbar-item--date">
+        <div className="filter-toolbar-item filter-toolbar-item--search">
           <label className="label-text">Search</label>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
@@ -89,7 +82,7 @@ export default function AdminTrashPage() {
             />
           </div>
         </div>
-        <div className="filter-toolbar-item filter-toolbar-item--compact">
+        <div className="filter-toolbar-item filter-toolbar-item--auto">
           <label className="label-text">Type</label>
           <select
             className="select-field"
@@ -169,65 +162,21 @@ export default function AdminTrashPage() {
                     >
                       <RotateCcw className="h-4 w-4 text-success" />
                     </button>
-                    {item.type === "FOLDER" && (
-                      <button
-                        type="button"
-                        className="btn-ghost p-1.5"
-                        aria-label={`Permanently delete ${item.name}`}
-                        onClick={() => setPendingPurge(item)}
-                      >
-                        <Trash2 className="h-4 w-4 text-error" />
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))}
           </tbody>
         </table>
+        <Pagination
+          number={page}
+          totalPages={totalPages}
+          totalElements={totalElements}
+          shown={items.length}
+          onPrev={() => setPage((p) => p - 1)}
+          onNext={() => setPage((p) => p + 1)}
+          itemLabel="items"
+        />
       </div>
-
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            className="btn-secondary"
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            Trước
-          </button>
-          <span className="text-xs text-text-muted">
-            {page + 1} / {totalPages}
-          </span>
-          <button
-            type="button"
-            className="btn-secondary"
-            disabled={page + 1 >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Sau
-          </button>
-        </div>
-      )}
-
-      <ConfirmDialog
-        open={Boolean(pendingPurge)}
-        title="Xoá vĩnh viễn"
-        message={`Xoá vĩnh viễn thư mục "${pendingPurge?.name}" cùng toàn bộ nội dung bên trong? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xoá vĩnh viễn"
-        onClose={() => setPendingPurge(null)}
-        onConfirm={async () => {
-          const target = pendingPurge;
-          setPendingPurge(null);
-          try {
-            await permanentlyDeleteTrashFolder(target.itemId);
-            setToast({ type: "success", text: "Đã xoá vĩnh viễn" });
-            load();
-          } catch (e) {
-            setToast({ type: "error", text: e.message });
-          }
-        }}
-      />
 
       <Toast toast={toast} onDone={() => setToast(null)} />
     </main>

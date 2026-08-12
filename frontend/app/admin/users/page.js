@@ -6,6 +6,7 @@ import Modal from "@/components/ui/Modal";
 import Toast from "@/components/ui/Toast";
 import AdminTableState from "@/features/admin/components/AdminTableState";
 import ConfirmDialog from "@/features/admin/components/ConfirmDialog";
+import Pagination from "@/features/document/components/Pagination";
 import { useAuth } from "@/lib/AuthContext";
 import { hasPermission, ROLES, roleBadgeClass } from "@/lib/permissions";
 import {
@@ -36,6 +37,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [page, setPage] = useState(0);
 
   const [keyword, setKeyword] = useState("");
@@ -73,6 +75,7 @@ export default function AdminUsersPage() {
       .then((data) => {
         setUsers(data.content ?? []);
         setTotalPages(data.totalPages ?? 0);
+        setTotalElements(data.totalElements ?? 0);
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -120,23 +123,17 @@ export default function AdminUsersPage() {
 
   return (
     <main className="flex-1 mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-semibold text-text-primary">Users</h1>
-          <p className="mt-1 text-sm text-text-muted">
-            Quản lý người dùng, role và phòng ban.
-          </p>
-        </div>
-        {canCreate && (
+      {canCreate && (
+        <div className="mb-5 flex justify-end">
           <button type="button" className="btn-primary" onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4" />
             Thêm user
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="filter-toolbar mb-4">
-        <div className="filter-toolbar-item filter-toolbar-item--date">
+        <div className="filter-toolbar-item filter-toolbar-item--search">
           <label className="label-text">Search</label>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
@@ -154,7 +151,7 @@ export default function AdminUsersPage() {
             />
           </div>
         </div>
-        <div className="filter-toolbar-item filter-toolbar-item--wide">
+        <div className="filter-toolbar-item filter-toolbar-item--auto">
           <label className="label-text">Department</label>
           <select
             className="select-field"
@@ -172,7 +169,7 @@ export default function AdminUsersPage() {
             ))}
           </select>
         </div>
-        <div className="filter-toolbar-item filter-toolbar-item--compact">
+        <div className="filter-toolbar-item filter-toolbar-item--auto">
           <label className="label-text">Role</label>
           <select
             className="select-field"
@@ -190,7 +187,7 @@ export default function AdminUsersPage() {
             ))}
           </select>
         </div>
-        <div className="filter-toolbar-item filter-toolbar-item--compact">
+        <div className="filter-toolbar-item filter-toolbar-item--auto">
           <label className="label-text">Status</label>
           <select
             className="select-field"
@@ -334,31 +331,16 @@ export default function AdminUsersPage() {
               ))}
           </tbody>
         </table>
+        <Pagination
+          number={page}
+          totalPages={totalPages}
+          totalElements={totalElements}
+          shown={users.length}
+          onPrev={() => setPage((p) => p - 1)}
+          onNext={() => setPage((p) => p + 1)}
+          itemLabel="users"
+        />
       </div>
-
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            className="btn-secondary"
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            Trước
-          </button>
-          <span className="text-xs text-text-muted">
-            {page + 1} / {totalPages}
-          </span>
-          <button
-            type="button"
-            className="btn-secondary"
-            disabled={page + 1 >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Sau
-          </button>
-        </div>
-      )}
 
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Thêm user" preventClose={saving}>
         <form className="flex flex-col gap-3" onSubmit={submitCreate}>

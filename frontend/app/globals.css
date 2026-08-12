@@ -229,6 +229,7 @@ body {
   flex: 0 0 auto; /* không giãn */
 }
 
+/* Used by the main (non-admin) FilterToolbar */
 .filter-toolbar-item--compact {
   width: 120px;
 }
@@ -237,8 +238,18 @@ body {
   width: 180px;
 }
 
+/* Admin filter dropdowns: sizes to its own label instead of a fixed bucket */
+.filter-toolbar-item--auto {
+  width: auto;
+  min-width: 110px;
+}
+
 .filter-toolbar-item--date {
   width: 280px;
+}
+
+.filter-toolbar-item--search {
+  width: 340px;
 }
 
 .filter-toolbar-item--xs {

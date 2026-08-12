@@ -6,6 +6,7 @@ import Modal from "@/components/ui/Modal";
 import Toast from "@/components/ui/Toast";
 import AdminTableState from "@/features/admin/components/AdminTableState";
 import ConfirmDialog from "@/features/admin/components/ConfirmDialog";
+import Pagination from "@/features/document/components/Pagination";
 import { useAuth } from "@/lib/AuthContext";
 import { hasPermission, roleBadgeClass } from "@/lib/permissions";
 import {
@@ -28,6 +29,7 @@ export default function AdminDepartmentsPage() {
 
   const [departments, setDepartments] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [page, setPage] = useState(0);
   const [keyword, setKeyword] = useState("");
 
@@ -59,6 +61,7 @@ export default function AdminDepartmentsPage() {
       .then((data) => {
         setDepartments(data.content ?? []);
         setTotalPages(data.totalPages ?? 0);
+        setTotalElements(data.totalElements ?? 0);
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -123,14 +126,8 @@ export default function AdminDepartmentsPage() {
 
   return (
     <main className="flex-1 mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-semibold text-text-primary">Departments</h1>
-          <p className="mt-1 text-sm text-text-muted">
-            Quản lý phòng ban, manager và thành viên.
-          </p>
-        </div>
-        {canCreate && (
+      {canCreate && (
+        <div className="mb-5 flex justify-end">
           <button
             type="button"
             className="btn-primary"
@@ -143,11 +140,11 @@ export default function AdminDepartmentsPage() {
             <Plus className="h-4 w-4" />
             Thêm phòng ban
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="filter-toolbar mb-4">
-        <div className="filter-toolbar-item filter-toolbar-item--date">
+        <div className="filter-toolbar-item filter-toolbar-item--search">
           <label className="label-text">Search</label>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
@@ -238,31 +235,16 @@ export default function AdminDepartmentsPage() {
               ))}
           </tbody>
         </table>
+        <Pagination
+          number={page}
+          totalPages={totalPages}
+          totalElements={totalElements}
+          shown={departments.length}
+          onPrev={() => setPage((p) => p - 1)}
+          onNext={() => setPage((p) => p + 1)}
+          itemLabel="departments"
+        />
       </div>
-
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            className="btn-secondary"
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            Trước
-          </button>
-          <span className="text-xs text-text-muted">
-            {page + 1} / {totalPages}
-          </span>
-          <button
-            type="button"
-            className="btn-secondary"
-            disabled={page + 1 >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Sau
-          </button>
-        </div>
-      )}
 
       <Modal
         open={Boolean(detail) || detailLoading}

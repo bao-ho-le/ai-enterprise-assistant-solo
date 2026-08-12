@@ -81,13 +81,6 @@ export default function AdminRolesPage() {
 
   return (
     <main className="flex-1 mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
-      <div className="mb-5">
-        <h1 className="text-lg font-semibold text-text-primary">Roles & Permissions</h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Permission là system-defined. Admin chỉ gán/bỏ gán cho 4 base role.
-        </p>
-      </div>
-
       {loading && (
         <div className="flex items-center justify-center py-24">
           <Loader2 className="h-6 w-6 animate-spin text-text-muted" />
@@ -132,9 +125,11 @@ export default function AdminRolesPage() {
               <h2 className="text-sm font-semibold text-text-primary">
                 Permissions của {selectedRole}
               </h2>
-              <button type="button" className="btn-primary" disabled={!dirty || saving} onClick={save}>
-                {saving ? "Đang lưu…" : "Lưu thay đổi"}
-              </button>
+              {selectedRole !== "ADMIN" && (
+                <button type="button" className="btn-primary" disabled={!dirty || saving} onClick={save}>
+                  {saving ? "Đang lưu…" : "Lưu thay đổi"}
+                </button>
+              )}
             </div>
 
             {selectedRole === "ADMIN" && (

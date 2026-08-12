@@ -5,6 +5,7 @@ import { Search, ShieldOff } from "lucide-react";
 import Toast from "@/components/ui/Toast";
 import AdminTableState from "@/features/admin/components/AdminTableState";
 import ConfirmDialog from "@/features/admin/components/ConfirmDialog";
+import Pagination from "@/features/document/components/Pagination";
 import { useAuth } from "@/lib/AuthContext";
 import { hasPermission } from "@/lib/permissions";
 import {
@@ -24,6 +25,7 @@ export default function AdminSharedDocumentsPage() {
   const [departments, setDepartments] = useState([]);
   const [users, setUsers] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [page, setPage] = useState(0);
 
   const [keyword, setKeyword] = useState("");
@@ -52,6 +54,7 @@ export default function AdminSharedDocumentsPage() {
       .then((data) => {
         setShares(data.content ?? []);
         setTotalPages(data.totalPages ?? 0);
+        setTotalElements(data.totalElements ?? 0);
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -73,15 +76,8 @@ export default function AdminSharedDocumentsPage() {
 
   return (
     <main className="flex-1 mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
-      <div className="mb-5">
-        <h1 className="text-lg font-semibold text-text-primary">Shared Documents</h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Mọi lượt chia sẻ tài liệu cho từng người dùng cụ thể (chỉ quyền đọc).
-        </p>
-      </div>
-
       <div className="filter-toolbar mb-4">
-        <div className="filter-toolbar-item filter-toolbar-item--date">
+        <div className="filter-toolbar-item filter-toolbar-item--search">
           <label className="label-text">Search</label>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
@@ -117,7 +113,7 @@ export default function AdminSharedDocumentsPage() {
             options: users.map((u) => ({ id: u.id, name: u.fullName })),
           },
         ].map(({ label, value, setValue, options }) => (
-          <div key={label} className="filter-toolbar-item filter-toolbar-item--wide">
+          <div key={label} className="filter-toolbar-item filter-toolbar-item--auto">
             <label className="label-text">{label}</label>
             <select
               className="select-field"
@@ -204,31 +200,16 @@ export default function AdminSharedDocumentsPage() {
               ))}
           </tbody>
         </table>
+        <Pagination
+          number={page}
+          totalPages={totalPages}
+          totalElements={totalElements}
+          shown={shares.length}
+          onPrev={() => setPage((p) => p - 1)}
+          onNext={() => setPage((p) => p + 1)}
+          itemLabel="shares"
+        />
       </div>
-
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            className="btn-secondary"
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            Trước
-          </button>
-          <span className="text-xs text-text-muted">
-            {page + 1} / {totalPages}
-          </span>
-          <button
-            type="button"
-            className="btn-secondary"
-            disabled={page + 1 >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Sau
-          </button>
-        </div>
-      )}
 
       <ConfirmDialog
         open={Boolean(pendingRevoke)}

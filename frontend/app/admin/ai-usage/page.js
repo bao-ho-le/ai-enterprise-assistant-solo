@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Activity, AlertCircle, Coins, Loader2, Wallet } from "lucide-react";
 import AdminTableState from "@/features/admin/components/AdminTableState";
+import Pagination from "@/features/document/components/Pagination";
 import {
   getAdminDepartments,
   getAdminUsageLogs,
@@ -17,6 +18,7 @@ export default function AdminAIUsagePage() {
   const [overview, setOverview] = useState(null);
   const [logs, setLogs] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [page, setPage] = useState(0);
 
   const [departments, setDepartments] = useState([]);
@@ -59,6 +61,7 @@ export default function AdminAIUsagePage() {
       .then((data) => {
         setLogs(data.content ?? []);
         setTotalPages(data.totalPages ?? 0);
+        setTotalElements(data.totalElements ?? 0);
       })
       .catch((e) => setLogsError(e.message))
       .finally(() => setLogsLoading(false));
@@ -86,15 +89,8 @@ export default function AdminAIUsagePage() {
 
   return (
     <main className="flex-1 mx-auto w-full max-w-[1440px] px-4 pt-6 pb-8 sm:px-6 lg:px-8">
-      <div className="mb-5">
-        <h1 className="text-lg font-semibold text-text-primary">AI Usage</h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Thống kê sử dụng AI toàn hệ thống theo người dùng và phòng ban.
-        </p>
-      </div>
-
       <div className="filter-toolbar mb-4">
-        <div className="filter-toolbar-item filter-toolbar-item--wide">
+        <div className="filter-toolbar-item filter-toolbar-item--auto">
           <label className="label-text">User</label>
           <select
             className="select-field"
@@ -112,7 +108,7 @@ export default function AdminAIUsagePage() {
             ))}
           </select>
         </div>
-        <div className="filter-toolbar-item filter-toolbar-item--wide">
+        <div className="filter-toolbar-item filter-toolbar-item--auto">
           <label className="label-text">Department</label>
           <select
             className="select-field"
@@ -277,31 +273,16 @@ export default function AdminAIUsagePage() {
               ))}
           </tbody>
         </table>
+        <Pagination
+          number={page}
+          totalPages={totalPages}
+          totalElements={totalElements}
+          shown={logs.length}
+          onPrev={() => setPage((p) => p - 1)}
+          onNext={() => setPage((p) => p + 1)}
+          itemLabel="logs"
+        />
       </div>
-
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            className="btn-secondary"
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            Trước
-          </button>
-          <span className="text-xs text-text-muted">
-            {page + 1} / {totalPages}
-          </span>
-          <button
-            type="button"
-            className="btn-secondary"
-            disabled={page + 1 >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Sau
-          </button>
-        </div>
-      )}
     </main>
   );
 }
