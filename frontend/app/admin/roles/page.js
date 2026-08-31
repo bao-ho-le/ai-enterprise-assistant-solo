@@ -58,7 +58,7 @@ export default function AdminRolesPage() {
     setSaving(true);
     try {
       await updateAdminRolePermissions(selectedRole, draft);
-      setToast({ type: "success", text: "Đã cập nhật permission" });
+      setToast({ type: "success", text: "Permissions updated" });
       load();
     } catch (e) {
       setToast({ type: "error", text: e.message });
@@ -92,7 +92,7 @@ export default function AdminRolesPage() {
           <AlertCircle className="h-6 w-6 text-error" />
           <p className="text-sm text-error">{error}</p>
           <button type="button" className="btn-secondary" onClick={load}>
-            Thử lại
+            Retry
           </button>
         </div>
       )}
@@ -123,18 +123,18 @@ export default function AdminRolesPage() {
           <section className="card p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-text-primary">
-                Permissions của {selectedRole}
+                Permissions for {selectedRole}
               </h2>
               {selectedRole !== "ADMIN" && (
                 <button type="button" className="btn-primary" disabled={!dirty || saving} onClick={save}>
-                  {saving ? "Đang lưu…" : "Lưu thay đổi"}
+                  {saving ? "Saving…" : "Save changes"}
                 </button>
               )}
             </div>
 
             {selectedRole === "ADMIN" && (
               <p className="mb-4 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs text-text-muted">
-                Role ADMIN luôn phải giữ đủ permission — backend sẽ từ chối nếu bị thu hồi.
+                The ADMIN role must always keep full permissions — the backend rejects any revocation.
               </p>
             )}
 

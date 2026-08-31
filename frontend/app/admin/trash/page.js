@@ -56,7 +56,7 @@ export default function AdminTrashPage() {
       } else {
         await restoreTrashFolder(item.itemId);
       }
-      setToast({ type: "success", text: "Đã khôi phục" });
+      setToast({ type: "success", text: "Restored" });
       load();
     } catch (e) {
       setToast({ type: "error", text: e.message });
@@ -73,7 +73,7 @@ export default function AdminTrashPage() {
             <input
               className="input-field"
               style={{ paddingLeft: "2.25rem" }}
-              placeholder="Tên tài liệu hoặc thư mục…"
+              placeholder="Document or folder name…"
               value={keyword}
               onChange={(e) => {
                 setPage(0);
@@ -122,7 +122,7 @@ export default function AdminTrashPage() {
               loading={loading}
               error={error}
               empty={!loading && !error && items.length === 0}
-              emptyText="Thùng rác trống"
+              emptyText="Trash is empty"
               onRetry={load}
             />
 

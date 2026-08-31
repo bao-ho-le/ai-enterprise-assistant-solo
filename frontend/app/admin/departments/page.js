@@ -110,7 +110,7 @@ export default function AdminDepartmentsPage() {
       setFormOpen(false);
       setEditing(null);
       setForm({ name: "", description: "" });
-      setToast({ type: "success", text: editing ? "Đã cập nhật" : "Đã tạo phòng ban" });
+      setToast({ type: "success", text: editing ? "Updated" : "Department created" });
       load();
     } catch (e) {
       setToast({ type: "error", text: e.message });
@@ -133,7 +133,7 @@ export default function AdminDepartmentsPage() {
             <input
               className="input-field"
               style={{ paddingLeft: "2.25rem" }}
-              placeholder="Tên phòng ban…"
+              placeholder="Department name…"
               value={keyword}
               onChange={(e) => {
                 setPage(0);
@@ -184,7 +184,7 @@ export default function AdminDepartmentsPage() {
                 loading={loading}
                 error={error}
                 empty={!loading && !error && departments.length === 0}
-                emptyText="Chưa có phòng ban nào"
+                emptyText="No departments yet"
                 onRetry={load}
               />
 
@@ -248,7 +248,7 @@ export default function AdminDepartmentsPage() {
       <Modal
         open={Boolean(detail) || detailLoading}
         onClose={() => setDetail(null)}
-        title={detail?.department?.name ?? "Đang tải…"}
+        title={detail?.department?.name ?? "Loading…"}
         maxWidth="max-w-2xl"
       >
         {detail && (
@@ -293,20 +293,20 @@ export default function AdminDepartmentsPage() {
                   ))}
               </select>
               <p className="mt-1 text-xs text-text-muted">
-                Chỉ thành viên có role MANAGER hoặc ADMIN mới được gán làm manager.
+                Only members with the MANAGER or ADMIN role can be assigned as manager.
               </p>
             </div>
 
             {canManageMembers && (
               <div className="flex items-end gap-2">
                 <div className="flex-1">
-                  <label className="label-text">Thêm thành viên</label>
+                  <label className="label-text">Add member</label>
                   <select
                     className="select-field"
                     value={memberToAdd}
                     onChange={(e) => setMemberToAdd(e.target.value)}
                   >
-                    <option value="">Chọn user…</option>
+                    <option value="">Select user…</option>
                     {memberOptions.map((candidate) => (
                       <option key={candidate.id} value={candidate.id}>
                         {candidate.fullName} ({candidate.role})
@@ -324,17 +324,17 @@ export default function AdminDepartmentsPage() {
                     setPendingAddMember({ userId: Number(memberToAdd), fullName: selected?.fullName ?? "" });
                   }}
                 >
-                  Thêm
+                  Add
                 </button>
               </div>
             )}
 
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Thành viên ({detail.members.length})
+                Members ({detail.members.length})
               </p>
               {detail.members.length === 0 ? (
-                <p className="py-6 text-center text-sm text-text-muted">Chưa có thành viên</p>
+                <p className="py-6 text-center text-sm text-text-muted">No members yet</p>
               ) : (
                 <ul className="flex max-h-64 flex-col gap-1 overflow-y-auto">
                   {detail.members.map((member) => (
@@ -360,7 +360,7 @@ export default function AdminDepartmentsPage() {
                                     detail.department.departmentId,
                                     member.userId
                                   ),
-                                "Đã gỡ thành viên"
+                                "Member removed"
                               )
                             }
                           >
@@ -380,12 +380,12 @@ export default function AdminDepartmentsPage() {
       <Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editing ? "Sửa phòng ban" : "Thêm phòng ban"}
+        title={editing ? "Edit department" : "Add department"}
         preventClose={saving}
       >
         <form className="flex flex-col gap-3" onSubmit={submitForm}>
           <div>
-            <label className="label-text">Tên phòng ban</label>
+            <label className="label-text">Department name</label>
             <input
               className="input-field"
               required
@@ -394,7 +394,7 @@ export default function AdminDepartmentsPage() {
             />
           </div>
           <div>
-            <label className="label-text">Mô tả</label>
+            <label className="label-text">Description</label>
             <textarea
               className="textarea-field"
               rows={3}
@@ -409,10 +409,10 @@ export default function AdminDepartmentsPage() {
               onClick={() => setFormOpen(false)}
               disabled={saving}
             >
-              Huỷ
+              Cancel
             </button>
             <button type="submit" className="btn-primary" disabled={saving}>
-              {saving ? "Đang lưu…" : "Lưu"}
+              {saving ? "Saving…" : "Save"}
             </button>
           </div>
         </form>
@@ -420,9 +420,9 @@ export default function AdminDepartmentsPage() {
 
       <ConfirmDialog
         open={Boolean(pendingAddMember)}
-        title="Thêm thành viên"
-        message={`Thêm "${pendingAddMember?.fullName}" vào phòng ban "${detail?.department?.name}"?`}
-        confirmLabel="Thêm"
+        title="Add member"
+        message={`Add "${pendingAddMember?.fullName}" to department "${detail?.department?.name}"?`}
+        confirmLabel="Add"
         onClose={() => setPendingAddMember(null)}
         onConfirm={async () => {
           const target = pendingAddMember;
@@ -431,19 +431,19 @@ export default function AdminDepartmentsPage() {
             const updated = await addAdminDepartmentMembers(detail.department.departmentId, [target.userId]);
             setMemberToAdd("");
             return updated;
-          }, "Đã thêm thành viên");
+          }, "Member added");
         }}
       />
 
       <ConfirmDialog
         open={Boolean(pendingManagerChange)}
-        title="Cập nhật manager"
+        title="Update manager"
         message={
           pendingManagerChange?.userId
-            ? `Gán "${pendingManagerChange?.fullName}" làm manager của phòng ban "${detail?.department?.name}"?`
-            : `Bỏ manager hiện tại của phòng ban "${detail?.department?.name}"?`
+            ? `Assign "${pendingManagerChange?.fullName}" as manager of department "${detail?.department?.name}"?`
+            : `Remove the current manager of department "${detail?.department?.name}"?`
         }
-        confirmLabel="Xác nhận"
+        confirmLabel="Confirm"
         onClose={() => setPendingManagerChange(null)}
         onConfirm={async () => {
           const target = pendingManagerChange;
@@ -451,7 +451,7 @@ export default function AdminDepartmentsPage() {
           await runOnDetail(async () => {
             await assignAdminDepartmentManager(detail.department.departmentId, target.userId);
             return getAdminDepartmentDetail(detail.department.departmentId);
-          }, "Đã cập nhật manager");
+          }, "Manager updated");
         }}
       />
 

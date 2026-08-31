@@ -84,7 +84,7 @@ export default function AdminSharedDocumentsPage() {
             <input
               className="input-field"
               style={{ paddingLeft: "2.25rem" }}
-              placeholder="Tên tài liệu…"
+              placeholder="Document name…"
               value={keyword}
               onChange={(e) => {
                 setPage(0);
@@ -159,7 +159,7 @@ export default function AdminSharedDocumentsPage() {
               loading={loading}
               error={error}
               empty={!loading && !error && shares.length === 0}
-              emptyText="Chưa có tài liệu nào được chia sẻ"
+              emptyText="No documents have been shared yet"
               onRetry={load}
             />
 
@@ -218,16 +218,16 @@ export default function AdminSharedDocumentsPage() {
 
       <ConfirmDialog
         open={Boolean(pendingRevoke)}
-        title="Thu hồi quyền truy cập"
-        message={`Thu hồi quyền đọc "${pendingRevoke?.documentTitle}" của ${pendingRevoke?.sharedUserName}?`}
-        confirmLabel="Thu hồi"
+        title="Revoke access"
+        message={`Revoke read access to "${pendingRevoke?.documentTitle}" for ${pendingRevoke?.sharedUserName}?`}
+        confirmLabel="Revoke"
         onClose={() => setPendingRevoke(null)}
         onConfirm={async () => {
           const target = pendingRevoke;
           setPendingRevoke(null);
           try {
             await revokeAdminDocumentAccess(target.documentId, target.sharedUserId);
-            setToast({ type: "success", text: "Đã thu hồi quyền truy cập" });
+            setToast({ type: "success", text: "Access revoked" });
             load();
           } catch (e) {
             setToast({ type: "error", text: e.message });

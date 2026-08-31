@@ -36,13 +36,13 @@ export default function AdminLayout({ children }) {
         <div className="card max-w-md p-8 text-center">
           <ShieldCheck className="mx-auto mb-4 h-8 w-8 text-text-muted" />
           <h1 className="mb-2 text-base font-semibold text-text-primary">
-            Không có quyền truy cập
+            Access denied
           </h1>
           <p className="text-sm text-text-muted">
-            Khu vực quản trị chỉ dành cho tài khoản ADMIN.
+            The admin area is only available to ADMIN accounts.
           </p>
           <Link href="/file-storage" className="btn-secondary mt-5 inline-flex">
-            Về app chính
+            Back to main app
           </Link>
         </div>
       </main>
@@ -76,7 +76,7 @@ export default function AdminLayout({ children }) {
           className="mt-auto flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary"
         >
           <ArrowLeft className="h-4 w-4" />
-          Về app chính
+          Back to main app
         </Link>
       </aside>
 

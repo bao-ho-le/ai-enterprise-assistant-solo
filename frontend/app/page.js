@@ -66,9 +66,6 @@ export default function LandingPage() {
                   Try Document QA
                 </Link>
               </div>
-              <p className="mt-6 text-sm text-text-muted">
-                Trusted by 200+ enterprise teams · SOC 2 Type II · GDPR compliant
-              </p>
             </div>
           </div>
         </section>

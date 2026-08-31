@@ -110,7 +110,7 @@ export default function AdminUsersPage() {
       });
       setCreateOpen(false);
       setForm(EMPTY_FORM);
-      setToast({ type: "success", text: "Đã tạo user" });
+      setToast({ type: "success", text: "User created" });
       load();
     } catch (e) {
       setToast({ type: "error", text: e.message });
@@ -131,7 +131,7 @@ export default function AdminUsersPage() {
             <input
               className="input-field"
               style={{ paddingLeft: "2.25rem" }}
-              placeholder="Tên, username hoặc email…"
+              placeholder="Name, username or email…"
               value={keyword}
               onChange={(e) => {
                 setPage(0);
@@ -262,7 +262,7 @@ export default function AdminUsersPage() {
                                 u.id,
                                 e.target.value ? Number(e.target.value) : null
                               ),
-                            "Đã đổi phòng ban"
+                            "Department changed"
                           )
                         }
                       >
@@ -284,7 +284,7 @@ export default function AdminUsersPage() {
                         value={u.role}
                         aria-label={`Role of ${u.fullName}`}
                         onChange={(e) =>
-                          run(() => assignAdminUserRole(u.id, e.target.value), "Đã đổi role")
+                          run(() => assignAdminUserRole(u.id, e.target.value), "Role changed")
                         }
                       >
                         {ROLES.map((r) => (
@@ -338,13 +338,13 @@ export default function AdminUsersPage() {
         />
       </div>
 
-      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Thêm user" preventClose={saving}>
+      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Add user" preventClose={saving}>
         <form className="flex flex-col gap-3" onSubmit={submitCreate}>
           {[
             { key: "username", label: "Username", type: "text" },
-            { key: "fullName", label: "Họ tên", type: "text" },
+            { key: "fullName", label: "Full name", type: "text" },
             { key: "email", label: "Email", type: "email" },
-            { key: "password", label: "Mật khẩu (tối thiểu 8 ký tự)", type: "password" },
+            { key: "password", label: "Password (minimum 8 characters)", type: "password" },
           ].map(({ key, label, type }) => (
             <div key={key}>
               <label className="label-text">{label}</label>
@@ -393,10 +393,10 @@ export default function AdminUsersPage() {
               onClick={() => setCreateOpen(false)}
               disabled={saving}
             >
-              Huỷ
+              Cancel
             </button>
             <button type="submit" className="btn-primary" disabled={saving}>
-              {saving ? "Đang lưu…" : "Tạo user"}
+              {saving ? "Saving…" : "Create user"}
             </button>
           </div>
         </form>
@@ -404,20 +404,20 @@ export default function AdminUsersPage() {
 
       <ConfirmDialog
         open={Boolean(pendingToggle)}
-        title={pendingToggle?.enabled ? "Xoá mềm user" : "Khôi phục user"}
+        title={pendingToggle?.enabled ? "Soft delete user" : "Restore user"}
         message={
           pendingToggle?.enabled
-            ? `Xoá mềm user "${pendingToggle.fullName}"? Tài khoản sẽ bị khoá và không thể đăng nhập.`
-            : `Khôi phục user "${pendingToggle?.fullName}"? Tài khoản sẽ hoạt động trở lại.`
+            ? `Soft delete user "${pendingToggle.fullName}"? The account will be locked and unable to log in.`
+            : `Restore user "${pendingToggle?.fullName}"? The account will be active again.`
         }
-        confirmLabel={pendingToggle?.enabled ? "Xoá mềm" : "Khôi phục"}
+        confirmLabel={pendingToggle?.enabled ? "Soft delete" : "Restore"}
         onClose={() => setPendingToggle(null)}
         onConfirm={async () => {
           const target = pendingToggle;
           setPendingToggle(null);
           await run(
             () => setAdminUserEnabled(target.id, !target.enabled),
-            target.enabled ? "Đã xoá mềm user" : "Đã khôi phục user"
+            target.enabled ? "User soft deleted" : "User restored"
           );
         }}
       />

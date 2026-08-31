@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, Menu, User, LogOut, ShieldCheck, Trash2, CalendarDays, Building2 } from "lucide-react";
+import { Sparkles, Menu, User, LogOut, ShieldCheck, Trash2, CalendarDays, Building2, LogIn, UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { isAdmin } from "@/lib/permissions";
 import { getInitials, formatDateTime } from "@/utils/format";
 
 const NAV_LINKS = [
-  { href: "/", label: "Home" },
   { href: "/file-storage", label: "File Storage" },
   { href: "/write-email", label: "Write Email" },
   { href: "/write-report", label: "Write Report" },
@@ -91,7 +90,23 @@ export default function NavigationBar() {
 
         {/* Right: Actions */}
         <div className="flex min-w-0 items-center justify-self-end gap-3">
-          {/* Whole cluster (avatar, name) is one click target for the account popover */}
+          {!user ? (
+            <div className="flex items-center gap-2">
+              <Link href="/login" className="btn-ghost gap-1.5 px-3 py-1.5 text-sm">
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign in</span>
+              </Link>
+              <Link
+                href="/register"
+                className="btn-primary gap-1.5 text-sm"
+                style={{ padding: "0.5rem 0.75rem" }}
+              >
+                <UserPlus className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign up</span>
+              </Link>
+            </div>
+          ) : (
+          /* Whole cluster (avatar, name) is one click target for the account popover */
           <div className="relative" ref={accountRef}>
             <button
               type="button"
@@ -184,6 +199,7 @@ export default function NavigationBar() {
               </div>
             )}
           </div>
+          )}
 
           {/* .btn-ghost is unlayered CSS (globals.css) so it beats the layered
               `lg:hidden` utility if put on the same element — wrap it instead. */}

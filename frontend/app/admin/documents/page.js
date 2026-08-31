@@ -122,7 +122,7 @@ export default function AdminDocumentsPage() {
             <input
               className="input-field"
               style={{ paddingLeft: "2.25rem" }}
-              placeholder="Tên tài liệu…"
+              placeholder="Document name…"
               value={keyword}
               onChange={(e) => {
                 setPage(0);
@@ -201,7 +201,7 @@ export default function AdminDocumentsPage() {
               loading={loading}
               error={error}
               empty={!loading && !error && documents.length === 0}
-              emptyText="Không tìm thấy tài liệu"
+              emptyText="No documents found"
               onRetry={load}
             />
 
@@ -295,10 +295,10 @@ export default function AdminDocumentsPage() {
         />
       </div>
 
-      <Modal open={Boolean(shares)} onClose={() => setShares(null)} title="Người được chia sẻ">
-        {shares?.items === null && <p className="text-sm text-text-muted">Đang tải…</p>}
+      <Modal open={Boolean(shares)} onClose={() => setShares(null)} title="Shared with">
+        {shares?.items === null && <p className="text-sm text-text-muted">Loading…</p>}
         {shares?.items?.length === 0 && (
-          <p className="py-6 text-center text-sm text-text-muted">Tài liệu chưa được chia sẻ.</p>
+          <p className="py-6 text-center text-sm text-text-muted">This document hasn&apos;t been shared.</p>
         )}
         {shares?.items?.length > 0 && (
           <ul className="flex flex-col gap-1">
@@ -320,14 +320,14 @@ export default function AdminDocumentsPage() {
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
-        title="Xoá tài liệu"
-        message={`Chuyển "${pendingDelete?.title}" vào thùng rác? File gốc vẫn được giữ và có thể khôi phục.`}
-        confirmLabel="Xoá"
+        title="Delete document"
+        message={`Move "${pendingDelete?.title}" to trash? The original file is kept and can be restored.`}
+        confirmLabel="Delete"
         onClose={() => setPendingDelete(null)}
         onConfirm={async () => {
           const target = pendingDelete;
           setPendingDelete(null);
-          await run(() => deleteAdminDocument(target.id), "Đã chuyển vào thùng rác");
+          await run(() => deleteAdminDocument(target.id), "Moved to trash");
         }}
       />
 

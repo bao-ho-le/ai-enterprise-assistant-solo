@@ -1,13 +1,20 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { getAccessToken, setTokens, clearTokens } from "@/lib/auth";
 import * as authService from "@/services/authService";
 import { getMe } from "@/services/userService";
+import { isAdmin } from "@/lib/permissions";
 
-const PUBLIC_PATHS = ["/login", "/register"];
+const PUBLIC_PATHS = ["/", "/login", "/register"];
+const AUTH_PAGES = ["/login", "/register"];
+
+function safeReturnUrl(url) {
+  if (!url || !url.startsWith("/") || url.startsWith("//") || AUTH_PAGES.includes(url)) return null;
+  return url;
+}
 
 const AuthContext = createContext(null);
 
@@ -20,6 +27,7 @@ export default function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -35,9 +43,13 @@ export default function AuthProvider({ children }) {
   useEffect(() => {
     if (loading) return;
     const isPublic = PUBLIC_PATHS.includes(pathname);
-    if (!user && !isPublic) router.replace("/login");
-    if (user && isPublic) router.replace("/");
-  }, [loading, user, pathname, router]);
+    const isAuthPage = AUTH_PAGES.includes(pathname);
+    if (!user && !isPublic) router.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+    if (user && isAuthPage) {
+      const defaultTarget = isAdmin(user) ? "/admin" : "/file-storage";
+      router.replace(safeReturnUrl(searchParams.get("returnUrl")) ?? defaultTarget);
+    }
+  }, [loading, user, pathname, router, searchParams]);
 
   const login = useCallback(async (userName, password) => {
     const tokens = await authService.login(userName, password);
@@ -65,7 +77,8 @@ export default function AuthProvider({ children }) {
   const value = { user, loading, login, register, logout, setUser };
 
   const isPublic = PUBLIC_PATHS.includes(pathname);
-  if (loading || (!user && !isPublic) || (user && isPublic)) {
+  const isAuthPage = AUTH_PAGES.includes(pathname);
+  if (loading || (!user && !isPublic) || (user && isAuthPage)) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-text-muted" />

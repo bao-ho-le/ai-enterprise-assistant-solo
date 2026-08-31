@@ -3,7 +3,7 @@
 import { AlertCircle, Loader2 } from "lucide-react";
 
 // Loading / error / empty state dùng chung cho mọi bảng admin, để 8 trang không lặp lại markup.
-export default function AdminTableState({ colSpan, loading, error, empty, emptyText = "Không có dữ liệu", onRetry }) {
+export default function AdminTableState({ colSpan, loading, error, empty, emptyText = "No data", onRetry }) {
   if (loading) {
     return (
       <tr>
@@ -22,7 +22,7 @@ export default function AdminTableState({ colSpan, loading, error, empty, emptyT
           <p className="text-sm text-error">{error}</p>
           {onRetry && (
             <button type="button" className="btn-secondary mt-3" onClick={onRetry}>
-              Thử lại
+              Retry
             </button>
           )}
         </td>
