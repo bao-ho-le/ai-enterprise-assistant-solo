@@ -5,6 +5,7 @@ import io.qdrant.client.QdrantGrpcClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 @Configuration
 @RequiredArgsConstructor
@@ -15,13 +16,17 @@ public class QdrantConfig {
     @Bean
     public QdrantClient qdrantClient() {
 
-        QdrantGrpcClient grpcClient = QdrantGrpcClient.newBuilder(
+        QdrantGrpcClient.Builder builder = QdrantGrpcClient.newBuilder(
                 properties.getHost(),
                 properties.getGrpcPort(),
                 properties.getUseTls()
-        ).build();
+        );
 
-        return new QdrantClient(grpcClient);
+        if (StringUtils.hasText(properties.getApiKey())) {
+            builder.withApiKey(properties.getApiKey());
+        }
+
+        return new QdrantClient(builder.build());
     }
 
 }
