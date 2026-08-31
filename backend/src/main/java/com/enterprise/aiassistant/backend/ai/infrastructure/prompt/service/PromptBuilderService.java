@@ -198,8 +198,6 @@ public class PromptBuilderService {
         return """
                 Summarize the attached documents.
                 Instructions: %s
-                Audience: %s
-                Include a dedicated action items section: %s
                 
                 Language: %s. %s
                 Length: %s. %s
@@ -211,8 +209,6 @@ public class PromptBuilderService {
                 %s
                 """.formatted(
                 valueOrDefault(input.getInstructions(), "None"),
-                valueOrDefault(input.getAudience(), "General audience"),
-                Boolean.TRUE.equals(input.getIncludeActionItems()) ? "Yes" : "No",
                 language, languageInstruction(language),
                 length, summaryLengthInstruction(length),
                 style, summaryStyleInstruction(style),

@@ -195,9 +195,11 @@ export default function DocumentDetailView({ documentId }) {
         </div>
       </div>
 
+      {/* ponytail: DocumentSharePanel temporarily hidden per request, re-enable by uncommenting
       <div className="mb-6">
         <DocumentSharePanel documentId={documentId} ownerId={info.ownerId} onToast={setToast} />
       </div>
+      */}
 
       {/* Version History */}
       <div className="card overflow-hidden mb-6">

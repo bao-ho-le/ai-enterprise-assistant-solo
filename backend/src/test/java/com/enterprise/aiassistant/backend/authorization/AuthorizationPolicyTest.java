@@ -213,10 +213,12 @@ class AuthorizationPolicyTest {
                 .build();
     }
 
+    // Folder thường luôn có cha — root (parent == null) là trường hợp riêng, chỉ ADMIN được ghi.
     private Folder folder(Long departmentId) {
 
         return Folder.builder()
                 .name("folder-" + departmentId)
+                .parent(Folder.builder().name("root").build())
                 .department(departmentId == null ? null : department(departmentId))
                 .build();
     }

@@ -34,18 +34,17 @@ public class FolderAuthorizationHelper {
         }
     }
 
-    // Folder mới luôn thuộc department của người tạo. Cha là folder dùng chung (root) thì
-    // ai có FOLDER_CREATE cũng tạo được; cha đã thuộc department khác thì phải cùng department.
+    // Folder mới luôn thuộc department của người tạo. Cha là root thì chỉ ADMIN được tạo;
+    // cha đã thuộc department khác thì phải cùng department.
     public void requireCreate(UserPrincipal principal, Folder parent) {
 
         requirePermission(principal, Permission.FOLDER_CREATE);
 
-        // Nếu Folder cha không thuộc department nào -> nghĩa là dùng chung -> cho phép ngay
-        if (principal.getRole() == Role.ADMIN || parent.getDepartment() == null) {
+        if (principal.getRole() == Role.ADMIN) {
             return;
         }
 
-        if (!isSameDepartment(principal, parent)) {
+        if (parent.getParent() == null || !isSameDepartment(principal, parent)) {
             throw new AuthorizationException(ErrorCode.ACCESS_DENIED);
         }
     }
@@ -69,14 +68,14 @@ public class FolderAuthorizationHelper {
         }
     }
 
-    // Folder dùng chung chỉ ADMIN mới được ghi.
+    // Folder root (không có cha) chỉ ADMIN mới được ghi.
     private void requireWriteScope(UserPrincipal principal, Folder folder) {
 
         if (principal.getRole() == Role.ADMIN) {
             return;
         }
 
-        if (folder.getDepartment() == null || !isSameDepartment(principal, folder)) {
+        if (folder.getParent() == null || !isSameDepartment(principal, folder)) {
             throw new AuthorizationException(ErrorCode.ACCESS_DENIED);
         }
     }

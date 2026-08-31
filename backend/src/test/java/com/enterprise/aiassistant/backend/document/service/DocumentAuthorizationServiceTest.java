@@ -96,6 +96,36 @@ class DocumentAuthorizationServiceTest {
         assertTrue(scope.sharedDocumentIds().isEmpty());
     }
 
+    @Test
+    void employeeWithoutDepartmentGetsScopeWithNullDepartmentNotUnrestricted() {
+
+        when(currentUserService.getCurrentPrincipal())
+                .thenReturn(principal(10L, Role.EMPLOYEE, null));
+        when(documentAccessRepository.findDocumentIdsSharedWithUser(10L))
+                .thenReturn(List.of(55L));
+
+        DocumentAccessScope scope = service.currentAccessScope();
+
+        // Không có department không được nới thành unrestricted: chỉ còn owner + share
+        // (+ document department = null do appendAccessScope luôn thêm mệnh đề đó).
+        assertFalse(scope.unrestricted());
+        assertEquals(10L, scope.userId());
+        assertNull(scope.departmentId());
+        assertEquals(List.of(55L), scope.sharedDocumentIds());
+    }
+
+    @Test
+    void supervisorWithoutDepartmentStaysUnrestricted() {
+
+        when(currentUserService.getCurrentPrincipal())
+                .thenReturn(principal(30L, Role.SUPERVISOR, null));
+
+        DocumentAccessScope scope = service.currentAccessScope();
+
+        assertTrue(scope.unrestricted());
+        assertNull(scope.departmentId());
+    }
+
     // Helper
 
     private UserPrincipal principal(Long userId, Role role, Long departmentId) {
