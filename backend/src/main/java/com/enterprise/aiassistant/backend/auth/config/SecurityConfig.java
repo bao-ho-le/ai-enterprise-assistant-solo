@@ -46,6 +46,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/health").permitAll()
                         // Lớp chặn đầu tiên cho admin API. Permission + resource scope vẫn được
                         // enforce lại ở service layer, đây không phải hàng rào duy nhất.
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")

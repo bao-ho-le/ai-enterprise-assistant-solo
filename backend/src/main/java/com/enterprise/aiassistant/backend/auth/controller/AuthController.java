@@ -10,6 +10,7 @@ import com.enterprise.aiassistant.backend.common.exception.ErrorCode;
 import com.enterprise.aiassistant.backend.common.exception.business_exception.AuthenticationException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -31,6 +32,9 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtProperties jwtProperties;
+
+    @Value("${app.cookie.secure}")
+    private boolean cookieSecure;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
@@ -78,13 +82,14 @@ public class AuthController {
     }
 
     // Refresh token never reaches JS: httpOnly cookie, scoped to the auth endpoints that need it.
+    // Cross-origin (Vercel <-> Render) needs SameSite=None, which the cookie spec requires to be paired with Secure.
+    // Locally (http://localhost) that pairing is impossible, so app.cookie.secure=false falls back to Lax.
+    // SameSite=Lax also serves as CSRF defense in the local case — csrf() is disabled globally in SecurityConfig.
     private ResponseCookie buildRefreshCookie(String token) {
-        // ponytail: secure=false since this runs over plain http://localhost; set true once on https.
-        // SameSite=Lax also serves as CSRF defense here — csrf() is disabled globally in SecurityConfig.
         return ResponseCookie.from(REFRESH_COOKIE_NAME, token)
                 .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
+                .secure(cookieSecure)
+                .sameSite(cookieSecure ? "None" : "Lax")
                 .path("/api/v1/auth")
                 .maxAge(Duration.ofMillis(jwtProperties.getRefreshToken().getExpiration()))
                 .build();
@@ -93,8 +98,8 @@ public class AuthController {
     private ResponseCookie clearRefreshCookie() {
         return ResponseCookie.from(REFRESH_COOKIE_NAME, "")
                 .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
+                .secure(cookieSecure)
+                .sameSite(cookieSecure ? "None" : "Lax")
                 .path("/api/v1/auth")
                 .maxAge(0)
                 .build();
