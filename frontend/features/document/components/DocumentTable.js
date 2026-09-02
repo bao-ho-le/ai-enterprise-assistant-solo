@@ -236,14 +236,14 @@ export default function DocumentTable({
       {/* Selection toolbar — always visible so the layout doesn't jump on select */}
       <div className="flex shrink-0 items-center justify-between gap-4 px-4 py-3 border-b border-border-subtle bg-bg-primary">
         <div className="flex items-center gap-2">
-          <button type="button" className="btn-primary py-2 px-3 text-sm" onClick={onUploadClick}>
+          <button type="button" className="btn-primary py-2 px-3 text-sm" onClick={onUploadClick} aria-label="Upload New Document">
             <Upload className="h-4 w-4" />
-            Upload New Document
+            <span className="hidden min-[1190px]:inline">Upload New Document</span>
           </button>
           {folderMode && (
-            <button type="button" className="btn-secondary py-2 px-3 text-sm" onClick={onCreateFolder}>
+            <button type="button" className="btn-secondary py-2 px-3 text-sm" onClick={onCreateFolder} aria-label="New Folder">
               <FolderPlus className="h-4 w-4" />
-              New Folder
+              <span className="hidden min-[1190px]:inline">New Folder</span>
             </button>
           )}
         </div>
@@ -253,116 +253,131 @@ export default function DocumentTable({
             onClick={onNavigateToWriteReport}
             disabled={disabled || selectedCount === 0 || hasFolderSelected}
             className={`btn-secondary py-2 px-3 text-sm ${disabled || selectedCount === 0 || hasFolderSelected ? "opacity-50" : ""}`}
+            aria-label="Write Report"
           >
             <FileText className="h-4 w-4" />
-            Write Report
+            <span className="hidden min-[1190px]:inline">Write Report</span>
           </button>
           <button
             type="button"
             onClick={onNavigateToSummary}
             disabled={disabled || selectedCount === 0 || hasFolderSelected}
             className={`btn-secondary py-2 px-3 text-sm ${disabled || selectedCount === 0 || hasFolderSelected ? "opacity-50" : ""}`}
+            aria-label="Summary"
           >
             <ListTree className="h-4 w-4" />
-            Summary
+            <span className="hidden min-[1190px]:inline">Summary</span>
           </button>
           <button
             type="button"
             onClick={onNavigateToDocumentQA}
             disabled={disabled || selectedCount === 0 || hasFolderSelected}
             className={`btn-secondary py-2 px-3 text-sm ${disabled || selectedCount === 0 || hasFolderSelected ? "opacity-50" : ""}`}
+            aria-label="Document QA"
           >
             <MessagesSquare className="h-4 w-4" />
-            Document QA
+            <span className="hidden min-[1190px]:inline">Document QA</span>
           </button>
           <button
             type="button"
             onClick={onBulkMove}
             disabled={selectedCount === 0}
             className={`btn-secondary py-2 px-3 text-sm ${selectedCount === 0 ? "opacity-50" : ""}`}
+            aria-label="Move"
           >
             <FolderInput className="h-4 w-4" />
-            Move
+            <span className="hidden min-[1190px]:inline">Move</span>
           </button>
           <button
             type="button"
             onClick={onBulkDelete}
             disabled={selectedCount === 0}
             className="btn-secondary py-2 px-3 text-sm text-error border-error/30 hover:bg-error/10 disabled:opacity-50 disabled:pointer-events-none"
+            aria-label="Delete"
           >
             <Trash2 className="h-4 w-4" />
-            Delete
+            <span className="hidden min-[1190px]:inline">Delete</span>
           </button>
         </div>
       </div>
 
-      {/* Header — a plain static row, not part of the scroll area at all, so it
-          cannot move during scroll by construction. One border/background for
-          the whole row is enough now (no more per-cell background — that was
-          only ever needed so a *sticky* header wouldn't show scrolled rows
-          bleeding through the gaps between cells, which can't happen once the
-          header isn't overlapping scrolled content in the first place). */}
-      <div
-        role="row"
-        className="grid shrink-0 border-b border-border-default bg-bg-primary"
-        style={{ gridTemplateColumns: columns, paddingRight: scrollbarWidth }}
-      >
-        <div role="columnheader" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary">
-          File Name
-        </div>
-        {/* Fixed-width selection column: reserves a small spot next to the
-            checkbox for the selection count so columns never shift when rows
-            are selected or deselected. */}
-        <div role="columnheader" className="flex items-center gap-1.5 px-4 py-3 text-left">
-          <input
-            type="checkbox"
-            className="h-4 w-4 shrink-0 rounded border-border-default bg-bg-primary accent-accent"
-            aria-label="Select all"
-            checked={allSelected}
-            onChange={onToggleAll}
-          />
-          <span className="w-6 text-xs font-medium tabular-nums text-text-secondary">
-            {selectedCount > 0 ? selectedCount : ""}
-          </span>
-        </div>
-        <div role="columnheader" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary">
-          Upload Time
-        </div>
-        {/* whitespace-nowrap keeps the header on a single line; the
-            column width is fixed (see documentTableGrid.js) rather than
-            auto-sizing to it. */}
-        <div className="whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary" role="columnheader">
-          Document Type
-        </div>
-        <div role="columnheader" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary">
-          Extension
-        </div>
-        <div role="columnheader" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary">
-          Size
-        </div>
-        {showSemanticColumn && (
-          <div className="whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary" role="columnheader">
-            Match
+      {/* Horizontal-scroll wrapper around header + body: File Name has a floor
+          width (see documentTableGrid.js), so below that the row grids are
+          wider than the table and need to scroll sideways. Header and body are
+          both plain (non-shrinking) children of this one scroller, so they
+          always scroll in lockstep — no separate sync logic needed.
+          overflow-y-hidden (not the default `visible` overflow-x-auto would
+          otherwise force via the CSS "other axis" rule): the body scrolls
+          vertically on its own inner overflow-y-auto below, this wrapper only
+          ever scrolls horizontally. */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-x-auto overflow-y-hidden">
+        {/* Header — a plain static row, not part of the scroll area at all, so it
+            cannot move during scroll by construction. One border/background for
+            the whole row is enough now (no more per-cell background — that was
+            only ever needed so a *sticky* header wouldn't show scrolled rows
+            bleeding through the gaps between cells, which can't happen once the
+            header isn't overlapping scrolled content in the first place). */}
+        <div
+          role="row"
+          className="grid shrink-0 border-b border-border-default bg-bg-primary"
+          style={{ gridTemplateColumns: columns, paddingRight: scrollbarWidth }}
+        >
+          <div role="columnheader" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary">
+            File Name
           </div>
-        )}
-        <div role="columnheader" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary">
-          Processing
+          {/* Fixed-width selection column: reserves a small spot next to the
+              checkbox for the selection count so columns never shift when rows
+              are selected or deselected. */}
+          <div role="columnheader" className="flex items-center gap-1.5 px-4 py-3 text-left">
+            <input
+              type="checkbox"
+              className="h-4 w-4 shrink-0 rounded border-border-default bg-bg-primary accent-accent"
+              aria-label="Select all"
+              checked={allSelected}
+              onChange={onToggleAll}
+            />
+            <span className="w-6 text-xs font-medium tabular-nums text-text-secondary">
+              {selectedCount > 0 ? selectedCount : ""}
+            </span>
+          </div>
+          <div role="columnheader" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary">
+            Upload Time
+          </div>
+          {/* whitespace-nowrap keeps the header on a single line; the
+              column width is fixed (see documentTableGrid.js) rather than
+              auto-sizing to it. */}
+          <div className="whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary" role="columnheader">
+            Document Type
+          </div>
+          <div role="columnheader" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary">
+            Extension
+          </div>
+          <div role="columnheader" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary">
+            Size
+          </div>
+          {showSemanticColumn && (
+            <div className="whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary" role="columnheader">
+              Match
+            </div>
+          )}
+          <div role="columnheader" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-primary">
+            Processing
+          </div>
+          <div role="columnheader" className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-primary">
+            Actions
+          </div>
         </div>
-        <div role="columnheader" className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-primary">
-          Actions
-        </div>
-      </div>
 
-      {/* min-h-0 overflow-auto: this is the only part of the card that scrolls
-          (both axes — vertical for row count, horizontal same as before for the
-          wide semantic search table).
-          overscroll-y-contain: without it, once this list hits its scroll boundary
-          (top or bottom), the browser chains the rest of the wheel/trackpad gesture
-          to the next scrollable ancestor (the root layout's page wrapper) — which
-          then drags this whole component. `contain` stops the chain at this
-          boundary. */}
-      <div ref={scrollRef} role="rowgroup" className="min-h-0 flex-1 overflow-auto overscroll-y-contain">
-        {loading && (
+        {/* min-h-0 overflow-y-auto: this is the part of the card that scrolls
+            vertically for row count — horizontal scrolling is now the wrapper's
+            job above, so header and body move together.
+            overscroll-y-contain: without it, once this list hits its scroll boundary
+            (top or bottom), the browser chains the rest of the wheel/trackpad gesture
+            to the next scrollable ancestor (the root layout's page wrapper) — which
+            then drags this whole component. `contain` stops the chain at this
+            boundary. */}
+        <div ref={scrollRef} role="rowgroup" className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+          {loading && (
           <div className="min-h-full">
             {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
               <SkeletonRow key={i} columns={columns} />
@@ -432,6 +447,7 @@ export default function DocumentTable({
         {/* Scroll sentinel — invisible, just gives the IntersectionObserver
             something to watch right after the last row. */}
         {!loading && !error && <div aria-hidden="true" ref={sentinelRef} className="h-px" />}
+        </div>
       </div>
 
       {/* Single context menu for the whole table, driven by the contextMenu

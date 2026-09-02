@@ -119,10 +119,10 @@ export default function NavigationBar() {
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-bg-elevated text-xs font-medium text-text-secondary">
                 {getInitials(user?.fullName)}
               </span>
-              <span className="hidden text-sm text-text-secondary sm:inline">
+              <span className="hidden text-sm text-text-secondary lg:inline">
                 {user?.fullName}
               </span>
-              <Menu className="h-6 w-6 text-text-muted" strokeWidth={1.5} />
+              <Menu className="hidden h-6 w-6 text-text-muted lg:block" strokeWidth={1.5} />
             </button>
 
             {accountOpen && (
