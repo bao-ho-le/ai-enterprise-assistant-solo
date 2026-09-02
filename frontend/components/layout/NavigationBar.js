@@ -57,7 +57,12 @@ export default function NavigationBar() {
         aria-label="Main navigation"
       >
         {/* Left: Logo */}
-        <div className="flex min-w-0 items-center justify-self-start">
+        {/* col-start pins each section to its grid track explicitly — without it,
+            CSS Grid's implicit auto-placement assigns tracks in DOM order skipping
+            display:none items, so hiding the center nav (below lg) would shift
+            this row into track 2 and strand the actual last track empty, pulling
+            it off the right edge. */}
+        <div className="col-start-1 flex min-w-0 items-center justify-self-start">
           <Link
             href="/"
             className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
@@ -72,7 +77,7 @@ export default function NavigationBar() {
         </div>
 
         {/* Center: Navigation */}
-        <div className="hidden justify-self-center lg:flex">
+        <div className="col-start-2 hidden justify-self-center lg:flex">
           <div className="flex items-center gap-1 whitespace-nowrap">
             {NAV_LINKS.map((link) => (
               <Link
@@ -89,7 +94,7 @@ export default function NavigationBar() {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex min-w-0 items-center justify-self-end gap-3">
+        <div className="col-start-3 flex min-w-0 items-center justify-self-end gap-3">
           {!user ? (
             <div className="flex items-center gap-2">
               <Link href="/login" className="btn-ghost gap-1.5 px-3 py-1.5 text-sm">
