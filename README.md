@@ -2,7 +2,7 @@
 
 **Enterprise AI Document Assistant** là hệ thống hỗ trợ quản lý và khai thác tài liệu doanh nghiệp với sự hỗ trợ của AI: upload tài liệu, tự động xử lý (trích xuất, chia nhỏ, tạo embedding), sau đó cho phép tìm kiếm ngữ nghĩa, hỏi đáp trực tiếp trên nội dung tài liệu (RAG), hoặc yêu cầu AI soạn sẵn email, báo cáo, tóm tắt, biểu mẫu dựa trên tài liệu đã upload.
 
-🔗 **Demo trực tuyến:** [https://ai-enterprise-assistant-solo.vercel.app](https://ai-enterprise-assistant-solo.vercel.app)
+> ⚠️ **Lưu ý về bản demo:** link demo trực tuyến trước đây ([ai-enterprise-assistant-solo.vercel.app](https://ai-enterprise-assistant-solo.vercel.app)) **hiện không còn hoạt động** do các dịch vụ free-tier dùng để deploy đã hết hạn mức sử dụng. Xem giao diện thực tế ở mục [📸 Giao diện ứng dụng](#-giao-diện-ứng-dụng) bên dưới, hoặc tự chạy local theo mục **▶️ Hướng dẫn chạy dự án**.
 
 ---
 
@@ -18,6 +18,62 @@
 - **Thùng rác và khôi phục** — tài liệu, thư mục, hội thoại lỡ xoá đều khôi phục lại được.
 - **Trang quản trị** — admin quản lý người dùng, phòng ban, quyền hạn, đồng thời theo dõi lượng dùng AI và chi phí ước tính theo ngày.
 - **Chạy được bằng một lệnh** — toàn bộ hệ thống đóng gói sẵn bằng Docker Compose.
+
+---
+
+## 📸 Giao diện ứng dụng
+
+Ảnh chụp từ bản chạy local với dữ liệu mẫu (4 tài liệu nội bộ, 3 phòng ban, 5 người dùng).
+
+### Trang chủ và đăng nhập
+
+| | |
+|---|---|
+| ![Trang chủ](docs/screenshots/01-landing.png) | ![Đăng nhập](docs/screenshots/02-login.png) |
+| **Trang chủ** — giới thiệu các tính năng chính, dẫn vào các luồng làm việc. | **Đăng nhập** — trả access token, refresh token lưu trong httpOnly cookie và tự xoay vòng. |
+
+### Quản lý tài liệu
+
+| | |
+|---|---|
+| ![File Storage](docs/screenshots/03-file-storage.png) | ![Tìm kiếm ngữ nghĩa](docs/screenshots/04-semantic-search.png) |
+| **File Storage** — duyệt tài liệu theo thư mục, trạng thái xử lý (`READY`), thao tác hàng loạt: viết báo cáo, tóm tắt, hỏi đáp, di chuyển, xoá. | **Tìm kiếm ngữ nghĩa** — gõ câu hỏi tự nhiên ("doanh thu quý 3 tăng bao nhiêu"), hệ thống trả về tài liệu liên quan kèm % độ khớp. |
+| ![Chi tiết tài liệu](docs/screenshots/05-document-detail.png) | ![Thùng rác](docs/screenshots/06-file-storage-trash.png) |
+| **Chi tiết tài liệu** — metadata, phiên bản hiện hành và lịch sử phiên bản (kèm ghi chú thay đổi), tải về từng phiên bản. | **Thùng rác** — tài liệu và thư mục đã xoá mềm, khôi phục bằng một click. |
+
+### Hỏi đáp trên tài liệu (RAG)
+
+| | |
+|---|---|
+| ![Document QA](docs/screenshots/07-document-qa-chat.png) | ![Nguồn trích dẫn](docs/screenshots/08-document-qa-sources.png) |
+| **Document QA** — đính kèm tài liệu rồi hỏi; câu hỏi nối tiếp ("còn nghỉ ốm thì sao?") vẫn hiểu đúng ngữ cảnh. | **Nguồn trích dẫn** — mỗi câu trả lời có nút *Sources* chỉ ra đoạn tài liệu gốc và điểm tương đồng. |
+
+### Soạn văn bản bằng AI
+
+| | |
+|---|---|
+| ![Viết email](docs/screenshots/09-write-email.png) | ![Kết quả email](docs/screenshots/10-email-result.png) |
+| **Write Email** — nhập mục đích, người gửi/nhận, ngôn ngữ, độ dài, giọng văn. | **Email được sinh ra** — nội dung chỉnh sửa và lưu lại được, có link về hội thoại gốc. |
+| ![Viết báo cáo](docs/screenshots/11-write-report.png) | ![Kết quả báo cáo](docs/screenshots/12-report-result.png) |
+| **Write Report** — chọn tài liệu nguồn, khoảng thời gian và đối tượng đọc. | **Báo cáo được sinh ra** — báo cáo có cấu trúc tổng hợp từ nhiều tài liệu. |
+| ![Tóm tắt](docs/screenshots/13-summary.png) | ![Nội dung đã sinh](docs/screenshots/14-generated-contents.png) |
+| **Summary** — tóm tắt dạng đoạn văn, gạch đầu dòng hoặc có cấu trúc. | **Generated Contents** — tất cả nội dung AI đã sinh, lọc theo loại. |
+
+### Theo dõi chi phí AI
+
+| |
+|---|
+| ![AI Usage](docs/screenshots/15-ai-usage.png) |
+| **AI Usage Dashboard** — số request, token, chi phí ước tính và tỉ lệ thành công trong ngày và 7 ngày gần nhất. |
+
+### Trang quản trị (Admin)
+
+| | |
+|---|---|
+| ![Quản lý người dùng](docs/screenshots/16-admin-users.png) | ![Phân quyền](docs/screenshots/17-admin-roles.png) |
+| **Users** — tạo người dùng, đổi phòng ban, gán vai trò, bật/tắt tài khoản. | **Roles** — bật/tắt từng permission cho 4 vai trò; quyền của ADMIN được khoá cứng. |
+| ![Phòng ban](docs/screenshots/18-admin-departments.png) | ![AI Usage toàn hệ thống](docs/screenshots/19-admin-ai-usage.png) |
+| **Departments** — quản lý phòng ban và số thành viên. | **AI Usage (Admin)** — thống kê chi phí AI của toàn hệ thống. |
 
 ---
 
@@ -250,7 +306,7 @@ Compose sẽ chờ Postgres, MinIO, Qdrant **healthy** rồi mới khởi độn
 
 ## 🚀 Triển khai (Deployment)
 
-Hệ thống đang chạy production trên các dịch vụ cloud free-tier, chi phí vận hành **$0/tháng**.
+Hệ thống từng được triển khai production trên các dịch vụ cloud free-tier, chi phí vận hành **$0/tháng** (hiện đã ngừng do hết hạn mức — xem lưu ý bên dưới).
 
 ### Hạ tầng
 
@@ -264,6 +320,8 @@ Hệ thống đang chạy production trên các dịch vụ cloud free-tier, chi
 | AI models | **Google Gemini API** | Embedding + sinh văn bản |
 
 ### URL public
+
+> ⚠️ Các URL dưới đây **hiện không còn hoạt động** — các dịch vụ free-tier đã hết hạn mức sử dụng. Giữ lại để tham khảo cấu hình.
 
 | Service | URL |
 |---|---|
